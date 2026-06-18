@@ -15,7 +15,11 @@ require('dotenv').config();
 console.log("API Key loaded:", process.env.GEMINI_API_KEY ? "YES ✅" : "NO ❌");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 const mongoose = require("mongoose");
@@ -2824,3 +2828,5 @@ app.use("/uploads", express.static("uploads"));
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
+
+module.exports = app;
