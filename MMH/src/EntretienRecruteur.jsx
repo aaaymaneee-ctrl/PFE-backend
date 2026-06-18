@@ -95,7 +95,7 @@ function EntretienRecruteur() {
     // --- CHARGEMENT DES DONNÉES ---
     const fetchInterviews = async (recruteurId) => {
         try {
-            const res = await fetch(`http://localhost:3000/offres/recruteur/${recruteurId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${recruteurId}`);
             const offres = await res.json();
             
             let allInterviews = [];
@@ -112,7 +112,7 @@ function EntretienRecruteur() {
                         // Récupérer le nom de l'étudiant
                         let etudiantNom = 'Candidat inconnu';
                         try {
-                            const userRes = await fetch(`http://localhost:3000/users/${candidature.etudiantId}`);
+                            const userRes = await fetch(`https://pfe-backend-five.vercel.app/users/${candidature.etudiantId}`);
                             if (userRes.ok) {
                                 const userData = await userRes.json();
                                 etudiantNom = `${userData.prenom} ${userData.nom}`;
@@ -171,7 +171,7 @@ function EntretienRecruteur() {
                 ? "Félicitations, vous êtes retenu pour ce poste suite à votre entretien !" 
                 : "Suite à votre entretien, nous ne pouvons malheureusement pas donner suite à votre candidature.";
 
-            const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -199,7 +199,7 @@ function EntretienRecruteur() {
         if (!window.confirm("Voulez-vous vraiment clôturer cet appel ? L'étudiant verra que l'entretien est terminé.")) return;
         
         try {
-            const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}/terminer-visio`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}/terminer-visio`, {
                 method: 'PUT'
             });
             
@@ -627,7 +627,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                     onClose={() => setSchedulingInterview(null)}
                     onConfirm={async (creneau) => {
                         try {
-                            const res = await fetch(`http://localhost:3000/creneaux/planifier-recruteur`, {
+                            const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({

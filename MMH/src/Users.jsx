@@ -166,7 +166,7 @@ function Users() {
             if (roleFilter !== 'all') params.append('role', roleFilter);
             if (statusFilter !== 'all') params.append('status', statusFilter);
             
-            const res = await fetch(`http://localhost:3000/admin/users?${params}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/admin/users?${params}`);
             const data = await res.json();
             
             if (res.ok) {
@@ -183,7 +183,7 @@ function Users() {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch('http://localhost:3000/admin/stats');
+            const res = await fetch('https://pfe-backend-five.vercel.app/admin/stats');
             const data = await res.json();
             if (res.ok) {
                 setStats(data);
@@ -198,7 +198,7 @@ function Users() {
         
         setActionLoading(true);
         try {
-            const res = await fetch(`http://localhost:3000/admin/users/${selectedUser._id}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/admin/users/${selectedUser._id}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
@@ -225,7 +225,7 @@ function Users() {
         
         setActionLoading(true);
         try {
-            const res = await fetch(`http://localhost:3000/admin/users/${selectedUser._id}/block`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/admin/users/${selectedUser._id}/block`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason: blockReason || 'Aucune raison fournie' })
@@ -253,7 +253,7 @@ function Users() {
     const handleUnblockUser = async (user) => {
         setActionLoading(true);
         try {
-            const res = await fetch(`http://localhost:3000/admin/users/${user._id}/unblock`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/admin/users/${user._id}/unblock`, {
                 method: 'PUT'
             });
             const data = await res.json();

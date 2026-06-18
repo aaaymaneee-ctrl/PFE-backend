@@ -74,7 +74,7 @@ function Dashboard() {
 
     const fetchUserInfo = async (userId) => {
     try {
-        const res = await fetch(`http://localhost:3000/users/${userId}`);
+        const res = await fetch(`https://pfe-backend-five.vercel.app/users/${userId}`);
         const userData = await res.json();
         console.log("Fetched user data from server:", userData);
         // If you need to update user data, uncomment the next line:
@@ -87,7 +87,7 @@ function Dashboard() {
 
 const fetchCVInfo = async (userId) => {
     try {
-        const res = await fetch(`http://localhost:3000/users`);
+        const res = await fetch(`https://pfe-backend-five.vercel.app/users`);
         
         if (!res.ok) {
             console.error("Failed to fetch users:", res.status);
@@ -111,7 +111,7 @@ const fetchCVInfo = async (userId) => {
     const fetchAdminStats = async () => {
     try {
         // Fetch all users
-        const usersRes = await fetch('http://localhost:3000/users');
+        const usersRes = await fetch('https://pfe-backend-five.vercel.app/users');
         const users = await usersRes.json();
         
         const totalUsers = users.length;
@@ -119,7 +119,7 @@ const fetchCVInfo = async (userId) => {
         const totalRecruiters = users.filter(u => u.role === 'Recruteur').length;
         
         // Fetch all offers
-        const offersRes = await fetch('http://localhost:3000/offres');
+        const offersRes = await fetch('https://pfe-backend-five.vercel.app/offres');
         const offers = await offersRes.json();
         
         const totalOffers = offers.length;
@@ -158,7 +158,7 @@ const fetchCVInfo = async (userId) => {
 };
   const fetchRecruiterStats = async (recruiterId) => {
         try {
-            const res = await fetch(`http://localhost:3000/stats/recruteur/${recruiterId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/stats/recruteur/${recruiterId}`);
             const statsData = await res.json();
             
             if (statsData.isBlocked) {
@@ -167,7 +167,7 @@ const fetchCVInfo = async (userId) => {
             }
 
             // On récupère les offres pour compter précisément les étudiants embauchés
-            const offresRes = await fetch(`http://localhost:3000/offres/recruteur/${recruiterId}`);
+            const offresRes = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${recruiterId}`);
             const offres = await offresRes.json();
             
             let realPositionsFilled = 0;
@@ -189,7 +189,7 @@ const fetchCVInfo = async (userId) => {
 
     const fetchStudentStats = async (studentId) => {
         try {
-            const res = await fetch('http://localhost:3000/offres');
+            const res = await fetch('https://pfe-backend-five.vercel.app/offres');
             const offres = await res.json();
             
             let activeApplications = 0;

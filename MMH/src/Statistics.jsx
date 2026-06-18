@@ -28,7 +28,7 @@ function Statistics() {
         const fetchStats = async () => {
             try {
                 // On suppose que la route admin stats est configurée sur ce endpoint dans server.js
-                const response = await fetch('http://localhost:3000/admin/stats');
+                const response = await fetch('https://pfe-backend-five.vercel.app/admin/stats');
                 if (!response.ok) throw new Error('Erreur lors de la récupération des données');
                 
                 const data = await response.json();

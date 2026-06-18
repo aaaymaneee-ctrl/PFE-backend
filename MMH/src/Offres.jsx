@@ -17,7 +17,7 @@ const AutoApplyResultsModal = ({ results, onClose }) => {
 
     const enrichSkippedOffers = async () => {
         try {
-            const res = await fetch('http://localhost:3000/offres');
+            const res = await fetch('https://pfe-backend-five.vercel.app/offres');
             const allOffres = await res.json();
             
             const offresMap = {};
@@ -387,11 +387,11 @@ function Offres() {
 
     const fetchOffres = async (userData) => {
     try {
-        let url = 'http://localhost:3000/offres';
+        let url = 'https://pfe-backend-five.vercel.app/offres';
         
         // For recruiter view - different endpoint
         if (userData?.role === 'Recruteur') {
-            const res = await fetch(`http://localhost:3000/offres/recruteur/${userData.id}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${userData.id}`);
             const data = await res.json();
             // The recruiter endpoint might return { offers: [], recruiterBlocked: true/false }
             if (data.offers) {
@@ -411,7 +411,7 @@ function Offres() {
         
         if (userData?.role === 'Etudiant' && userData.id) {
             // Get student's applied offers
-            const candidaturesRes = await fetch(`http://localhost:3000/candidatures/etudiant/${userData.id}`);
+            const candidaturesRes = await fetch(`https://pfe-backend-five.vercel.app/candidatures/etudiant/${userData.id}`);
             
             if (candidaturesRes.ok) {
                 const candidaturesData = await candidaturesRes.json();
@@ -437,7 +437,7 @@ function Offres() {
     } catch (err) {
         console.error("Error fetching offres:", err);
         try {
-            const fallbackRes = await fetch('http://localhost:3000/offres');
+            const fallbackRes = await fetch('https://pfe-backend-five.vercel.app/offres');
             const fallbackData = await fallbackRes.json();
             setOffres(fallbackData);
         } catch (fallbackErr) {
@@ -491,9 +491,9 @@ function Offres() {
         try {
             let res;
             if (editingOffre) {
-                res = await fetch(`http://localhost:3000/offres/${editingOffre._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offreData) });
+                res = await fetch(`https://pfe-backend-five.vercel.app/offres/${editingOffre._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offreData) });
             } else {
-                res = await fetch('http://localhost:3000/offres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offreData) });
+                res = await fetch('https://pfe-backend-five.vercel.app/offres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offreData) });
             }
             const data = await res.json();
             if (res.ok) { setMessage(data.message); setShowForm(false); fetchOffres(user); }
@@ -504,7 +504,7 @@ function Offres() {
     const handleDelete = async (offreId) => {
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) return;
         try {
-            const res = await fetch(`http://localhost:3000/offres/${offreId}`, { method: 'DELETE' });
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}`, { method: 'DELETE' });
             if (res.ok) { setOffres(offres.filter(o => o._id !== offreId)); setMessage('Offre supprimée avec succès'); }
         } catch (err) { setMessage('Erreur lors de la suppression'); }
     };
@@ -512,7 +512,7 @@ function Offres() {
     const handleApply = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`http://localhost:3000/offres/${selectedOffre._id}/postuler`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${selectedOffre._id}/postuler`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ etudiantId: user.id, lettreMotivation })
             });
@@ -528,7 +528,7 @@ function Offres() {
 
     const checkCVExists = async () => {
         try {
-            const res = await fetch(`http://localhost:3000/users/${user.id}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${user.id}`);
             const userData = await res.json();
             if (!userData.cv || !userData.cv.filename) {
                 setMessage("❌ Vous devez d'abord télécharger votre CV.");
@@ -544,7 +544,7 @@ function Offres() {
         if (!hasCV) return;
         setAutoApplying(true);
         try {
-            const res = await fetch(`http://localhost:3000/offres/auto-apply/${user.id}`, { method: 'POST' });
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/auto-apply/${user.id}`, { method: 'POST' });
             const data = await res.json();
             if (res.ok) { setAutoApplyResults(data.results); setShowAutoApplyModal(true); setMessage(`✅ ${data.message}`); }
             else { setMessage(data.error || "❌ Erreur lors de la candidature automatique."); }

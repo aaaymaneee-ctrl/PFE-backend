@@ -51,7 +51,7 @@ function SignUp(){
     setLoading(true);
 
     try {
-        const res = await fetch("http://localhost:3000/users", {
+        const res = await fetch("https://pfe-backend-five.vercel.app/users", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

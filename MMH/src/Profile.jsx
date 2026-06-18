@@ -126,7 +126,7 @@ function Profile() {
 
     const fetchRecruiterStats = async (recruiterId) => {
         try {
-            const res = await fetch(`http://localhost:3000/offres/recruteur/${recruiterId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${recruiterId}`);
             const offres = await res.json();
             
             const activeOffres = offres.filter(o => o.statut === 'active').length;
@@ -148,7 +148,7 @@ function Profile() {
 
     const fetchUserInfo = async (userId) => {
         try {
-            const res = await fetch(`http://localhost:3000/users/${userId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${userId}`);
             const userData = await res.json();
             console.log("Fetched user data from server:", userData);
             setAccountInfo(userData);
@@ -160,7 +160,7 @@ function Profile() {
 
     const fetchCVInfo = async (userId) => {
         try {
-            const res = await fetch(`http://localhost:3000/users`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users`);
             
             if (!res.ok) {
                 console.error("Failed to fetch users:", res.status);
@@ -212,7 +212,7 @@ function Profile() {
 
     const handleViewCV = () => {
         if (user && user.id) {
-            window.open(`http://localhost:3000/users/${user.id}/cv`, '_blank');
+            window.open(`https://pfe-backend-five.vercel.app/users/${user.id}/cv`, '_blank');
         }
     };
 
@@ -228,7 +228,7 @@ function Profile() {
 
     const handleSaveProfile = async () => {
         try {
-            const res = await fetch(`http://localhost:3000/users/${user.id}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prenom: editForm.prenom, nom: editForm.nom })
@@ -258,7 +258,7 @@ function Profile() {
         }
         
         try {
-            const res = await fetch(`http://localhost:3000/users/${user.id}/change-password`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${user.id}/change-password`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

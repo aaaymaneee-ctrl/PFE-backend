@@ -27,7 +27,7 @@ function Propositions() {
         try {
             // Utilisation de vos routes existantes pour récupérer les données
             if (userData.role === 'Etudiant') {
-                const res = await fetch(`http://localhost:3000/candidatures/etudiant/${userData.id}`);
+                const res = await fetch(`https://pfe-backend-five.vercel.app/candidatures/etudiant/${userData.id}`);
                 const data = await res.json();
                 // On ne garde que les candidatures en phase finale
                 const finalStages = data.filter(c => 
@@ -35,7 +35,7 @@ function Propositions() {
                 );
                 setPropositions(finalStages);
             } else if (userData.role === 'Recruteur') {
-                const res = await fetch(`http://localhost:3000/offres/recruteur/${userData.id}`);
+                const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${userData.id}`);
                 const data = await res.json();
                 const offres = data.offers || data;
                 
@@ -59,7 +59,7 @@ function Propositions() {
 
     const handleStudentDecision = async (offreId, decision) => {
         try {
-            const res = await fetch(`http://localhost:3000/candidatures/${offreId}/${user.id}/decision`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/candidatures/${offreId}/${user.id}/decision`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ decision })

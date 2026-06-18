@@ -269,14 +269,14 @@ const handleJoinVideo = (lienVisio) => {
 
 const fetchAcceptedOffers = async (studentId) => {
     try {
-        const res = await fetch(`http://localhost:3000/candidatures/etudiant/${studentId}`);
+        const res = await fetch(`https://pfe-backend-five.vercel.app/candidatures/etudiant/${studentId}`);
         const candidatures = await res.json();
         
         const accepted = candidatures.filter(c => c.statutCandidature === 'acceptée');
         
         const acceptedWithDetails = await Promise.all(accepted.map(async (candidature) => {
             try {
-                const offreRes = await fetch(`http://localhost:3000/offres/${candidature.offreId}`);
+                const offreRes = await fetch(`https://pfe-backend-five.vercel.app/offres/${candidature.offreId}`);
                 if (offreRes.ok) {
                     const fullOffre = await offreRes.json();
                     
@@ -387,7 +387,7 @@ const handleSendMessage = async () => {
             ).join('\n');
             
             try {
-                const scoreRes = await fetch('http://localhost:3000/chat/score-interview', {
+                const scoreRes = await fetch('https://pfe-backend-five.vercel.app/chat/score-interview', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -436,7 +436,7 @@ setAcceptedOffers(prev =>
     )
 );
                 try {
-                    const saveRes = await fetch(`http://localhost:3000/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
+                    const saveRes = await fetch(`https://pfe-backend-five.vercel.app/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -478,7 +478,7 @@ setAcceptedOffers(prev =>
                 setShowScore(true);
                 
                 try {
-                    const saveRes = await fetch(`http://localhost:3000/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
+                    const saveRes = await fetch(`https://pfe-backend-five.vercel.app/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -506,7 +506,7 @@ setAcceptedOffers(prev =>
                 `${m.type === 'bot' ? 'RECRUTEUR' : 'CANDIDAT'}: ${m.message}`
             ).join('\n');
 
-            const res = await fetch('http://localhost:3000/chat/interview', {
+            const res = await fetch('https://pfe-backend-five.vercel.app/chat/interview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -546,7 +546,7 @@ setAcceptedOffers(prev =>
                         setShowScore(true);
                         
                         try {
-                            const saveRes = await fetch(`http://localhost:3000/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
+                            const saveRes = await fetch(`https://pfe-backend-five.vercel.app/offres/${selectedOffer.offreId}/candidatures/${selectedOffer.candidatureId}/score`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({

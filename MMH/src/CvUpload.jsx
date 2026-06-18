@@ -32,7 +32,7 @@ function CVUpload() {
     // Check if CV exists and analyze it
     const checkExistingCV = async (userId) => {
         try {
-            const res = await fetch(`http://localhost:3000/users/${userId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${userId}`);
             const userData = await res.json();
             if (userData.cv && userData.cv.filename) {
                 // Auto-analyze existing CV
@@ -71,7 +71,7 @@ function CVUpload() {
         formData.append("cv", file);
 
         try {
-            const res = await fetch(`http://localhost:3000/users/${userId}/cv`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/users/${userId}/cv`, {
                 method: "POST",
                 body: formData
             });
@@ -97,7 +97,7 @@ function CVUpload() {
     const analyzeCV = async (userId) => {
         setAnalyzing(true);
         try {
-            const res = await fetch(`http://localhost:3000/cv/analyze/${userId}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/cv/analyze/${userId}`, {
                 method: 'POST'
             });
             

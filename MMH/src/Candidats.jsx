@@ -92,7 +92,7 @@ const [customConfirm, setCustomConfirm] = useState({ show: false, message: '', o
 const fetchRecruiterSlots = async (recruteurId) => {
     setLoadingSlots(true);
     try {
-        const res = await fetch(`http://localhost:3000/creneaux/recruteur/${recruteurId}/disponibles`);
+        const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/recruteur/${recruteurId}/disponibles`);
         const data = await res.json();
         setAvailableSlots(data.filter(slot => new Date(slot.date) > new Date())); // Filtrer les dates passées
     } catch (err) {
@@ -113,7 +113,7 @@ const createRecruiterSlot = async (recruteurId, date, heureDebut, heureFin) => {
         
         console.log('Creating slot with:', { recruteurId, date: formattedDate, heureDebut, heureFin });
         
-        const res = await fetch(`http://localhost:3000/creneaux/recruteur/${recruteurId}`, {
+        const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/recruteur/${recruteurId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -145,7 +145,7 @@ const createRecruiterSlot = async (recruteurId, date, heureDebut, heureFin) => {
 // Fonction pour assigner un créneau à une candidature (sans attendre l'étudiant)
 const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauData) => {
     try {
-        const res = await fetch('http://localhost:3000/creneaux/planifier-recruteur', {
+        const res = await fetch('https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -230,7 +230,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
 
     const accepterCandidatureDirect = async (offreId, candidatureId, statut, commentaireText) => {
     try {
-        const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+        const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -262,7 +262,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
 
     const fetchRecruiterData = async (recruiterId) => {
         try {
-            const offresRes = await fetch(`http://localhost:3000/offres/recruteur/${recruiterId}`);
+            const offresRes = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${recruiterId}`);
             const offresData = await offresRes.json();
             setOffres(offresData);
 
@@ -273,7 +273,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
                     for (const candidature of offre.candidatures) {
                         let etudiantInfo = { prenom: 'Inconnu', nom: '', email: '' };
                         try {
-                            const etudiantRes = await fetch(`http://localhost:3000/users/${candidature.etudiantId}`);
+                            const etudiantRes = await fetch(`https://pfe-backend-five.vercel.app/users/${candidature.etudiantId}`);
                             if (etudiantRes.ok) {
                                 etudiantInfo = await etudiantRes.json();
                             }
@@ -331,7 +331,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
     
     setIsSubmitting(true);
     try {
-        const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+        const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -365,7 +365,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
 
     const deployerInterviewAI = async (candidatureId, offreId, etudiantId) => {
         try {
-            const res = await fetch(`http://localhost:3000/interview/deploy`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/interview/deploy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -393,7 +393,7 @@ const planifierEntretien = async (candidatureId, offreId, etudiantId, creneauDat
     console.log('🚀 deployerEntretienReel appelé avec:', { candidatureId, offreId, etudiantId });
     
     try {
-        const res = await fetch(`http://localhost:3000/entretien/deployer-reel`, {
+        const res = await fetch(`https://pfe-backend-five.vercel.app/entretien/deployer-reel`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -431,7 +431,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
         message: "Voulez-vous vraiment terminer cet entretien ? Cette action est irréversible.",
         onConfirm: async () => {
         try {
-            const res = await fetch(`http://localhost:3000/entretien/terminer`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/entretien/terminer`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idOffre: offreId, idCandidature: candidatureId })
@@ -457,7 +457,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
 
     const updateCandidatureStatus = async (offreId, candidatureId, statut, commentaire) => {
         try {
-            const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ statut, commentaire })
@@ -528,7 +528,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
             try {
                 console.log(<>   Vérification CV pour utilisateur: {etudiantId}</>);
                 
-                const checkUserRes = await fetch(`http://localhost:3000/users/${etudiantId}`);
+                const checkUserRes = await fetch(`https://pfe-backend-five.vercel.app/users/${etudiantId}`);
                 
                 if (!checkUserRes.ok) {
                     console.error(<>   ${icons.xCircle} Utilisateur non trouvé (status: {checkUserRes.status})</>);
@@ -565,7 +565,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
                 console.log(`   ${icons.checkCircle} CV trouvé: ${userData.cv.originalName || userData.cv.filename}`);
                 console.log(`   Appel API: POST /cv/match/${etudiantId}/${offreId}`);
                 
-                const matchRes = await fetch(`http://localhost:3000/cv/match/${etudiantId}/${offreId}`, {
+                const matchRes = await fetch(`https://pfe-backend-five.vercel.app/cv/match/${etudiantId}/${offreId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -577,7 +577,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
                     console.error(<>   ${icons.xCircle} Erreur API match: ${matchRes.status} - ${errorText}</>);
                     
                     console.log(`   Tentative fallback avec cv-text...`);
-                    const cvTextRes = await fetch(`http://localhost:3000/cv-text/${etudiantId}`);
+                    const cvTextRes = await fetch(`https://pfe-backend-five.vercel.app/cv-text/${etudiantId}`);
                     
                     if (!cvTextRes.ok) {
                         console.error(<>   ${icons.xCircle} Fallback aussi en erreur</>);
@@ -687,7 +687,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
     const handleAcceptAllAI = async (deployInterview_ai) => {
         setIsAcceptingAll(true);
         try {
-            const res = await fetch(`http://localhost:3000/offres/accept-all-ai/${user.id}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/accept-all-ai/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -729,7 +729,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
         onConfirm: async () => {
 
         try {
-            const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
@@ -753,7 +753,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
     const handleDownloadCV = async (etudiantId, etudiantName) => {
         setCvLoading(prev => ({ ...prev, [etudiantId]: true }));
         try {
-            const checkRes = await fetch(`http://localhost:3000/users/${etudiantId}`);
+            const checkRes = await fetch(`https://pfe-backend-five.vercel.app/users/${etudiantId}`);
             const userData = await checkRes.json();
             
             if (!userData.cv || !userData.cv.filename) {
@@ -763,7 +763,7 @@ const handleTerminerEntretienReel = async (offreId, candidatureId) => {
                 return;
             }
             
-            const response = await fetch(`http://localhost:3000/users/${etudiantId}/cv`);
+            const response = await fetch(`https://pfe-backend-five.vercel.app/users/${etudiantId}/cv`);
             if (!response.ok) {
                 throw new Error('CV non trouvé');
             }
@@ -1869,7 +1869,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
             
             // FIRST: Accept the candidature with interviewType = 'reel'
             try {
-                const acceptRes = await fetch(`http://localhost:3000/offres/${selectedCandidatureForCreneau.offreId}/candidatures/${selectedCandidatureForCreneau._id}`, {
+                const acceptRes = await fetch(`https://pfe-backend-five.vercel.app/offres/${selectedCandidatureForCreneau.offreId}/candidatures/${selectedCandidatureForCreneau._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

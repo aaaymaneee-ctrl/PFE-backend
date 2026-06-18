@@ -32,7 +32,7 @@ function Moffres() {
 
     const fetchMesCandidatures = async (studentId) => {
         try {
-            const res = await fetch(`http://localhost:3000/candidatures/etudiant/${studentId}`);
+            const res = await fetch(`https://pfe-backend-five.vercel.app/candidatures/etudiant/${studentId}`);
             
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -61,7 +61,7 @@ function Moffres() {
         if (!window.confirm('Êtes-vous sûr de vouloir annuler cette candidature ?')) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/offres/${offreId}/candidatures/${candidatureId}`, {
+            const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
