@@ -41,6 +41,7 @@ const userSchema = new Schema({
     cv: {
         filename: String,
         originalName: String,
+        pdfData: Buffer,
         path: String,
         uploadDate: {
             type: Date,
