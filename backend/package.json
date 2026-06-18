@@ -19,6 +19,7 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
+    "natural": "^8.1.1",
     "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
     "oracledb": "^6.10.0",
