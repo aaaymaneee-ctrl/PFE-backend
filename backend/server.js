@@ -644,14 +644,12 @@ app.get("/users/:userId/cv", async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
         
-        // Check if user has a CV and a cloud path
         if (!user || !user.cv || !user.cv.path) {
             return res.status(404).json({ error: "Aucun CV trouvé" });
         }
 
-        // Redirect the frontend to the Cloudinary PDF URL
+        // Redirect the browser directly to the Cloudinary PDF
         res.redirect(user.cv.path);
-        
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -1289,39 +1287,41 @@ app.put("/offres/:offreId/candidatures/:candidatureId", async (req, res) => {
     // SECTION A: Helper function to get CV text for matching
 async function extractCVText(userId) {
     try {
-        // Find the user in database
         const user = await User.findById(userId);
         
-        // Check if user exists and has a CV
         if (!user || !user.cv || !user.cv.path) {
             console.log("No CV found for user:", userId);
             return null;
         }
         
-        // If we already extracted text before, use that (fast!)
+        // 1. FAST PATH: Use cached text if it exists
         if (user.cv.extractedText) {
             console.log("Using cached text for user:", userId);
             return user.cv.extractedText;
         }
         
-        // If no cached text, parse the PDF now (slow - only happens once)
-        console.log("Parsing PDF for user:", userId);
+        // 2. SLOW PATH: Fetch PDF from Cloudinary URL and parse it
+        console.log("Fetching PDF from Cloudinary for user:", userId);
         
-        // Check if file still exists on disk
-        if (!fs.existsSync(user.cv.path)) {
-            console.error("CV file not found on disk:", user.cv.path);
+        // Fetch the file from the URL
+        const response = await fetch(user.cv.path);
+        if (!response.ok) {
+            console.error("Failed to fetch PDF from Cloudinary");
             return null;
         }
         
-        // Read file and parse
-        const pdfBuffer = fs.readFileSync(user.cv.path);
+        // Convert the response to a Node Buffer
+        const arrayBuffer = await response.arrayBuffer();
+        const pdfBuffer = Buffer.from(arrayBuffer);
+        
+        // Parse the text
         const pdfData = await pdfParse(pdfBuffer);
         
-        // Save the extracted text for next time (cache it)
+        // Cache it in the database for next time
         user.cv.extractedText = pdfData.text;
         await user.save();
         
-        console.log("PDF text cached successfully");
+        console.log("PDF text downloaded and cached successfully");
         return pdfData.text;
         
     } catch (err) {
