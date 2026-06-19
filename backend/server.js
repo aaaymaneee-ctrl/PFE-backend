@@ -2005,7 +2005,8 @@ app.get("/creneaux/recruteur/:recruteurId/disponibles", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// Route pour terminer un entretien visio manuellement
+
+
 app.put("/offres/:offreId/candidatures/:candidatureId/terminer-visio", async (req, res) => {
     try {
         const { offreId, candidatureId } = req.params;
@@ -2016,10 +2017,19 @@ app.put("/offres/:offreId/candidatures/:candidatureId/terminer-visio", async (re
         const candidature = offre.candidatures.id(candidatureId);
         if (!candidature) return res.status(404).json({ error: "Candidature non trouvée" });
 
-        // On passe le statut en évaluation
+        // FIX: Explicitly update ALL states to unlock the UI
         candidature.statut = "evaluation_en_cours";
+        candidature.etapeEntretien = "termine";           // This unlocks the buttons
+        candidature.entretienReelActive = false;          // Resets the active flag
         
         await offre.save();
+
+        // Optional but recommended: Mark the specific Creneau as finished too
+        await Creneau.findOneAndUpdate(
+            { idCandidature: candidatureId },
+            { etatCreneau: 'termine', etapeEntretien: 'termine' }
+        );
+
         res.json({ message: "Entretien terminé, en attente de décision finale", candidature });
     } catch (error) {
         res.status(500).json({ error: error.message });
