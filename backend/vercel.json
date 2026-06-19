@@ -11,5 +11,16 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/check-offres",
+      "schedule": "1 0 * * *"
+    },
+    {
+      "path": "/api/cron/activate-interviews",
+      "schedule": "* * * * *"
+    }
   ]
 }
+

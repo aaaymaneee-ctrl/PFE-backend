@@ -7,7 +7,6 @@ const multer = require("multer");
 const Offre = require("./models/offremodel");
 const pdfParse = require('pdf-parse');
 const fs = require('fs');
-const cron = require('node-cron');
 const crypto = require('crypto');
 const nlpService = require('./nlpService');
 const Creneau = require("./models/creneaumodel");
@@ -39,29 +38,6 @@ mongoose.connect(DB_URL)
   .catch((err) => console.error("connection error", err));
 
 // Exécuter tous les jours à 00:01
-cron.schedule('1 0 * * *', async () => {
-    console.log('⏰ Exécution du cron job : Vérification des dates limites des offres...');
-    try {
-        const now = new Date();
-        
-        // Trouver et mettre à jour toutes les offres actives dont la date limite est passée
-        const result = await Offre.updateMany(
-            {
-                statut: 'active',
-                dateLimite: { $lt: now } // $lt signifie "less than" (inférieur à la date/heure actuelle)
-            },
-            {
-                $set: { statut: 'fermée' }
-            }
-        );
-        
-        if (result.modifiedCount > 0) {
-            console.log(`✅ Cron terminé : ${result.modifiedCount} offres ont été fermées automatiquement.`);
-        }
-    } catch (error) {
-        console.error("❌ Erreur lors de la fermeture automatique des offres :", error);
-    }
-});
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -106,139 +82,113 @@ const upload = multer({
 // ===== ROBUST SCHEDULER WITH FLEXIBLE DATE/TIME MATCHING =====
 let schedulerRunning = true;
 
-function startScheduler() {
-    console.log('✅ Interview scheduler started - checking every minute');
+app.get("/api/cron/activate-interviews", async (req, res) => {
+    console.log('✅ Vercel Cron: Checking for interviews to activate or expire...');
     
-    const task = cron.schedule('* * * * *', async () => {
-        if (!schedulerRunning) return;
+    try {
+        const now = new Date();
         
-        try {
-            const now = new Date();
-            
-            // Get current time in HH:MM format
-            const currentHour = String(now.getHours()).padStart(2, '0');
-            const currentMinute = String(now.getMinutes()).padStart(2, '0');
-            const currentTime = `${currentHour}:${currentMinute}`;
-            
-            // Get current date in YYYY-MM-DD format
-            // Get current date strictly in LOCAL YYYY-MM-DD format (Fixes UTC mismatch)
-            const currentYear = now.getFullYear();
-            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-            const currentDay = String(now.getDate()).padStart(2, '0');
-            const currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
-            
-            console.log(`\n🔍 [${now.toLocaleTimeString()}] Current time: ${currentDate} ${currentTime}`);
-            
-            // ===== STEP 1: Get ALL creneaux (no filter) =====
-            const allCreneaux = await Creneau.find({
-                etapeEntretien: 'creneau_choisi',
-                lienVisio: { $ne: null, $ne: '' }
-            });
-            
-            console.log(`📋 Found ${allCreneaux.length} creneaux with status 'creneau_choisi'`);
-            
-            // ===== STEP 2: Manual filtering with flexible comparison =====
-            const matchingCreneaux = [];
-            
-            for (const creneau of allCreneaux) {
-                // Normalize date to YYYY-MM-DD string
-                let creneauDate;
-                if (creneau.dateCreneau instanceof Date) {
-                    creneauDate = creneau.dateCreneau.toISOString().split('T')[0];
-                } else if (typeof creneau.dateCreneau === 'string') {
-                    creneauDate = creneau.dateCreneau.split('T')[0]; // Handle ISO strings
-                } else {
-                    creneauDate = String(creneau.dateCreneau);
-                }
-                
-                // Normalize time to HH:MM format
-                let creneauHeure = String(creneau.heureDebut).trim();
-                // Ensure 2-digit hour (9:00 → 09:00)
-                if (creneauHeure.match(/^\d:\d{2}$/)) {
-                    creneauHeure = '0' + creneauHeure;
-                }
-                
-                console.log(`   Checking: "${creneauDate}" "${creneauHeure}" vs "${currentDate}" "${currentTime}"`);
-                
-                // Compare
-                if (creneauDate === currentDate && creneauHeure === currentTime) {
-                    console.log(`   ✅ MATCH! Creneau ${creneau._id}`);
-                    matchingCreneaux.push(creneau);
-                }
-            }
-            
-            // ===== STEP 3: Activate matching creneaux =====
-            if (matchingCreneaux.length > 0) {
-                console.log(`\n🎯 Activating ${matchingCreneaux.length} interview(s)`);
-                
-                for (const creneau of matchingCreneaux) {
-                    try {
-                        // Update creneau status
-                        await Creneau.findByIdAndUpdate(creneau._id, {
-                            etapeEntretien: 'visio_en_cours'
-                        });
-                        
-                        // Update candidature in offre
-                        const offre = await Offre.findOne({ 
-                            'candidatures._id': creneau.idCandidature 
-                        });
-                        
-                        if (offre) {
-                            const candidature = offre.candidatures.id(creneau.idCandidature);
-                            if (candidature) {
-                                candidature.etapeEntretien = 'visio_en_cours';
-                                await offre.save();
-                                console.log(`   ✅ Activated candidature ${creneau.idCandidature}`);
-                            }
-                        }
-                    } catch (err) {
-                        console.error(`   ❌ Error activating creneau ${creneau._id}:`, err.message);
-                    }
-                }
+        // Get current time in HH:MM format
+        const currentHour = String(now.getHours()).padStart(2, '0');
+        const currentMinute = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${currentHour}:${currentMinute}`;
+        
+        // Get current date strictly in LOCAL YYYY-MM-DD format
+        const currentYear = now.getFullYear();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const currentDay = String(now.getDate()).padStart(2, '0');
+        const currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
+        
+        console.log(`\n🔍 [${now.toLocaleTimeString()}] Current time: ${currentDate} ${currentTime}`);
+        
+        // ===== STEP 1: Get ALL creneaux (no filter) =====
+        const allCreneaux = await Creneau.find({
+            etapeEntretien: 'creneau_choisi',
+            lienVisio: { $ne: null, $ne: '' }
+        });
+        
+        // ===== STEP 2: Manual filtering with flexible comparison =====
+        const matchingCreneaux = [];
+        
+        for (const creneau of allCreneaux) {
+            let creneauDate;
+            if (creneau.dateCreneau instanceof Date) {
+                creneauDate = creneau.dateCreneau.toISOString().split('T')[0];
+            } else if (typeof creneau.dateCreneau === 'string') {
+                creneauDate = creneau.dateCreneau.split('T')[0];
             } else {
-                console.log(`   ℹ️ No interviews to activate at this time`);
+                creneauDate = String(creneau.dateCreneau);
             }
             
-            // ===== STEP 4: Clean up expired interviews =====
-            const expiredCreneaux = await Creneau.find({
-                visioExpiresAt: { $lt: now },
-                etapeEntretien: 'visio_en_cours'
-            });
+            let creneauHeure = String(creneau.heureDebut).trim();
+            if (creneauHeure.match(/^\d:\d{2}$/)) {
+                creneauHeure = '0' + creneauHeure;
+            }
             
-            if (expiredCreneaux.length > 0) {
-                console.log(`\n🧹 Expiring ${expiredCreneaux.length} interview(s)`);
-                
-                for (const creneau of expiredCreneaux) {
-                    await Creneau.findByIdAndUpdate(creneau._id, {
-                        etapeEntretien: 'termine'
-                    });
+            if (creneauDate === currentDate && creneauHeure === currentTime) {
+                matchingCreneaux.push(creneau);
+            }
+        }
+        
+        // ===== STEP 3: Activate matching creneaux =====
+        if (matchingCreneaux.length > 0) {
+            console.log(`\n🎯 Activating ${matchingCreneaux.length} interview(s)`);
+            
+            for (const creneau of matchingCreneaux) {
+                try {
+                    await Creneau.findByIdAndUpdate(creneau._id, { etapeEntretien: 'visio_en_cours' });
                     
-                    // Update candidature
-                    try {
-                        const offre = await Offre.findOne({ 
-                            'candidatures._id': creneau.idCandidature 
-                        });
-                        if (offre) {
-                            const candidature = offre.candidatures.id(creneau.idCandidature);
-                            if (candidature) {
-                                candidature.etapeEntretien = 'termine';
-                                await offre.save();
-                            }
+                    const offre = await Offre.findOne({ 'candidatures._id': creneau.idCandidature });
+                    if (offre) {
+                        const candidature = offre.candidatures.id(creneau.idCandidature);
+                        if (candidature) {
+                            candidature.etapeEntretien = 'visio_en_cours';
+                            await offre.save();
                         }
-                    } catch (err) {
-                        console.error(`   ⚠️ Error expiring candidature: ${err.message}`);
                     }
+                } catch (err) {
+                    console.error(`   ❌ Error activating creneau ${creneau._id}:`, err.message);
                 }
             }
-            
-        } catch (err) {
-            console.error('❌ Scheduler error:', err.message);
-            console.error('Stack:', err.stack);
         }
-    });
-    
-    return task;
-}
+        
+        // ===== STEP 4: Clean up expired interviews =====
+        const expiredCreneaux = await Creneau.find({
+            visioExpiresAt: { $lt: now },
+            etapeEntretien: 'visio_en_cours'
+        });
+        
+        if (expiredCreneaux.length > 0) {
+            console.log(`\n🧹 Expiring ${expiredCreneaux.length} interview(s)`);
+            
+            for (const creneau of expiredCreneaux) {
+                await Creneau.findByIdAndUpdate(creneau._id, { etapeEntretien: 'termine' });
+                try {
+                    const offre = await Offre.findOne({ 'candidatures._id': creneau.idCandidature });
+                    if (offre) {
+                        const candidature = offre.candidatures.id(creneau.idCandidature);
+                        if (candidature) {
+                            candidature.etapeEntretien = 'termine';
+                            await offre.save();
+                        }
+                    }
+                } catch (err) {
+                    console.error(`   ⚠️ Error expiring candidature: ${err.message}`);
+                }
+            }
+        }
+        
+        res.status(200).json({ 
+            message: "Interview status check complete", 
+            activated: matchingCreneaux.length,
+            expired: expiredCreneaux.length
+        });
+
+    } catch (err) {
+        console.error('❌ Scheduler error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 const isRecruiterBlocked = async (recruiterId) => {
     const recruiter = await User.findById(recruiterId);
