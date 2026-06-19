@@ -1280,16 +1280,28 @@ app.put("/offres/:offreId/candidatures/:candidatureId", async (req, res) => {
             return res.status(404).json({ error: "Candidature non trouvée" });
         }
         
-        candidature.statut = statut;
+        // FIX 1: Safely cast 'statut' to a string
+        if (statut !== undefined) {
+            // If it's an object from a dropdown (like {value: 'acceptee'}), extract the value. 
+            // Otherwise, force it to a string.
+            candidature.statut = typeof statut === 'object' ? (statut.value || String(statut)) : String(statut);
+        }
+        
+        // FIX 2: Safely handle 'commentaire' (Crucial for AI JSON outputs)
         if (commentaire !== undefined) {
-            candidature.commentaire = commentaire;
+            // If the AI sent an object or array, convert it to a readable JSON string.
+            // If it's a normal text comment, just ensure it's a string.
+            candidature.commentaire = typeof commentaire === 'object' 
+                ? JSON.stringify(commentaire) 
+                : String(commentaire);
         }
         
         await offre.save();
-        console.log("Updated candidature:", candidature); // Debug log
+        console.log("Updated candidature:", candidature.statut); 
         
         res.json({ message: "Statut mis à jour", candidature });
     } catch (err) {
+        console.error("PUT Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
