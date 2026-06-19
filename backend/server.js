@@ -539,17 +539,27 @@ app.post("/users/:userId/cv", upload.single("cv"), async (req, res) => {
         const cloudResult = await uploadToCloudinary(pdfBuffer);
 
         // 3. SAVE TO DATABASE
+        // 3. SAVE TO DATABASE
+        
+        // FIX: Force all metadata to be safe, standard Strings before saving
+        const safeMetadata = {
+            title: pdfInfo?.title ? String(pdfInfo.title) : "Inconnu",
+            author: pdfInfo?.author ? String(pdfInfo.author) : "Inconnu",
+            creator: pdfInfo?.creator ? String(pdfInfo.creator) : "Inconnu",
+            producer: pdfInfo?.producer ? String(pdfInfo.producer) : "Inconnu"
+        };
+
         const user = await User.findByIdAndUpdate(
             userId,
             {
                 cv: {
                     filename: req.file.originalname,
                     originalName: req.file.originalname,
-                    path: cloudResult.secure_url, // Store the Cloudinary URL here instead of local path
+                    path: cloudResult.secure_url,
                     uploadDate: new Date(),
-                    extractedText: extractedText,
-                    numPages: numPages,
-                    metadata: pdfInfo
+                    extractedText: extractedText || "", // Fallback to empty string
+                    numPages: numPages || 0,
+                    metadata: safeMetadata // Pass the cleaned object here
                 }
             },
             { new: true }
