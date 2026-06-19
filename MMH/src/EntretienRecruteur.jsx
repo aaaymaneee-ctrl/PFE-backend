@@ -627,13 +627,20 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                     onClose={() => setSchedulingInterview(null)}
                     onConfirm={async (creneau) => {
                         try {
+                            // ✅ THE FIX: Safely extract IDs whether we are in Candidats.jsx or EntretienRecruteur.jsx
+                            const safeCandidatureId = schedulingInterview.candidatureId || schedulingInterview._id;
+                            const safeOffreId = schedulingInterview.offreId || schedulingInterview.idOffre || schedulingInterview.offre?._id;
+                            
+                            // Handle cases where etudiantId is a populated object instead of a raw string
+                            const safeEtudiantId = schedulingInterview.etudiantId?._id || schedulingInterview.etudiantId || schedulingInterview.etudiant?._id;
+
                             const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    candidatureId: schedulingInterview.candidatureId,
-                                    offreId: schedulingInterview.offreId,
-                                    etudiantId: schedulingInterview.etudiantId,
+                                    candidatureId: safeCandidatureId,
+                                    offreId: safeOffreId,
+                                    etudiantId: safeEtudiantId,
                                     creneau: {
                                         date: creneau.date,
                                         heureDebut: creneau.heureDebut,
