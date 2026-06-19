@@ -11,8 +11,17 @@ const cron = require('node-cron');
 const crypto = require('crypto');
 const nlpService = require('./nlpService');
 const Creneau = require("./models/creneaumodel");
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 require('dotenv').config();
 console.log("API Key loaded:", process.env.GEMINI_API_KEY ? "YES ✅" : "NO ❌");
+
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const app = express();
 app.use(cors({
@@ -79,11 +88,18 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+// Remove the old 'storage' and 'dir' logic. Use this:
 const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "application/pdf") {
+            cb(null, true);
+        } else {
+            cb(new Error("Seuls les fichiers PDF sont acceptés"), false);
+        }
+    },
     limits: {
-        fileSize: 5 * 1024 * 1024
+        fileSize: 5 * 1024 * 1024 // 5MB limit
     }
 });
 
@@ -473,77 +489,80 @@ app.post("/users/:userId/cv", upload.single("cv"), async (req, res) => {
     try {
         const userId = req.params.userId;
     
-        // SECTION A: Validation
         if (!userId || userId === 'undefined') {
             return res.status(400).json({ error: "ID utilisateur invalide" });
         }
-        
         if (!req.file) {
             return res.status(400).json({ error: "Aucun fichier PDF fourni" });
         }
 
-        console.log("Upload attempt:", {
-            userId,
-            file: req.file.filename,
-            size: req.file.size
-        });
-
-        // SECTION B: PDF Parsing - NEW CODE
-        // Read the uploaded file from disk into memory (buffer)
-        const pdfBuffer = fs.readFileSync(req.file.path);
+        const pdfBuffer = req.file.buffer;
         
-        // Parse the PDF to extract all text content
+        // 1. EXTRACT TEXT (From Memory)
         let extractedText = '';
-        let pdfInfo = {};
         let numPages = 0;
+        let pdfInfo = {};
         
         try {
             const pdfData = await pdfParse(pdfBuffer);
-            extractedText = pdfData.text;        // The actual CV text content
-            numPages = pdfData.numpages;          // How many pages the PDF has
-            pdfInfo = pdfData.info;               // Metadata (author, title, etc.)
-            
-            console.log("PDF parsed successfully:");
-            console.log("- Pages:", numPages);
-            console.log("- Text length:", extractedText.length, "characters");
-            console.log("- First 200 chars:", extractedText.substring(0, 200));
+            extractedText = pdfData.text;
+            numPages = pdfData.numpages;
+            pdfInfo = pdfData.info;
         } catch (parseError) {
             console.error("PDF parsing failed:", parseError);
-            // If parsing fails, still upload the file but without extracted text
-            extractedText = '';
         }
 
-        // SECTION C: Save to Database - UPDATED
+        // 2. UPLOAD TO CLOUDINARY (Using Stream)
+        const uploadToCloudinary = (buffer) => {
+            return new Promise((resolve, reject) => {
+                const cld_upload_stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "cv_uploads",
+                        resource_type: "raw", // 'raw' is necessary for PDFs
+                        format: "pdf"
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                
+                // Convert Node buffer to a stream and pipe it to Cloudinary
+                const { Readable } = require('stream');
+                const readableStream = new Readable();
+                readableStream.push(buffer);
+                readableStream.push(null);
+                readableStream.pipe(cld_upload_stream);
+            });
+        };
+
+        const cloudResult = await uploadToCloudinary(pdfBuffer);
+
+        // 3. SAVE TO DATABASE
         const user = await User.findByIdAndUpdate(
             userId,
             {
                 cv: {
-                    filename: req.file.filename,
+                    filename: req.file.originalname,
                     originalName: req.file.originalname,
-                    path: req.file.path,
+                    path: cloudResult.secure_url, // Store the Cloudinary URL here instead of local path
                     uploadDate: new Date(),
-                    extractedText: extractedText,  // NEW: Store the parsed text
-                    numPages: numPages,              // NEW: Store page count
-                    metadata: pdfInfo                // NEW: Store PDF metadata
+                    extractedText: extractedText,
+                    numPages: numPages,
+                    metadata: pdfInfo
                 }
             },
             { new: true }
         );
 
-        // SECTION D: Error handling if user not found
         if (!user) {
-            // Delete the uploaded file since user doesn't exist
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error("Error deleting file:", err);
-            });
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
 
-        // SECTION E: Send success response
         res.json({
-            message: "CV uploaded and parsed successfully",
+            message: "CV uploaded, parsed, and saved to cloud successfully",
             cv: user.cv,
-            extractedPreview: extractedText.substring(0, 500)  // Send first 500 chars as preview
+            extractedPreview: extractedText.substring(0, 500)
         });
 
     } catch (err) {
@@ -625,11 +644,14 @@ app.get("/users/:userId/cv", async (req, res) => {
     try {
         const user = await User.findById(req.params.userId);
         
+        // Check if user has a CV and a cloud path
         if (!user || !user.cv || !user.cv.path) {
             return res.status(404).json({ error: "Aucun CV trouvé" });
         }
 
-        res.sendFile(path.resolve(user.cv.path));
+        // Redirect the frontend to the Cloudinary PDF URL
+        res.redirect(user.cv.path);
+        
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
