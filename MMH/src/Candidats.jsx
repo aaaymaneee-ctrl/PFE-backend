@@ -1777,7 +1777,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                                     onClick={async () => {
                                         setShowSingleDeployModal(false);
                                         const etudiantId = singleDeployCandidature.etudiantId?._id || singleDeployCandidature.etudiantId;
-                                        await accepterCandidatureDirect(singleDeployCandidature.offreId, singleDeployCandidature._id, 'acceptée', <>{icons.checkCircle} Acceptée - Entretien AI déployé</>);
+                                        await accepterCandidatureDirect(singleDeployCandidature.offreId, singleDeployCandidature._id, 'acceptée'," Acceptée - Entretien AI déployé ");
                                         await deployerInterviewAI(singleDeployCandidature._id, singleDeployCandidature.offreId, etudiantId);
                                         setSingleDeployCandidature(null);
                                         fetchRecruiterData(user.id);
