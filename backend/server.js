@@ -1294,35 +1294,22 @@ async function extractCVText(userId) {
             return null;
         }
         
-        // 1. FAST PATH: Use cached text if it exists
-        if (user.cv.extractedText) {
-            console.log("Using cached text for user:", userId);
+        // FIX: Check if the text property exists, even if it's an empty string
+        if (typeof user.cv.extractedText === 'string') {
+            
+            if (user.cv.extractedText.trim() === '') {
+                console.log("CV text is empty. The PDF is likely a scanned image.");
+                // Return a default string so the NLP service doesn't crash
+                return "CV non lisible. Veuillez uploader un PDF textuel."; 
+            }
+            
+            console.log("Using cached text from database for user:", userId);
             return user.cv.extractedText;
         }
         
-        // 2. SLOW PATH: Fetch PDF from Cloudinary URL and parse it
-        console.log("Fetching PDF from Cloudinary for user:", userId);
-        
-        // Fetch the file from the URL
-        const response = await fetch(user.cv.path);
-        if (!response.ok) {
-            console.error("Failed to fetch PDF from Cloudinary");
-            return null;
-        }
-        
-        // Convert the response to a Node Buffer
-        const arrayBuffer = await response.arrayBuffer();
-        const pdfBuffer = Buffer.from(arrayBuffer);
-        
-        // Parse the text
-        const pdfData = await pdfParse(pdfBuffer);
-        
-        // Cache it in the database for next time
-        user.cv.extractedText = pdfData.text;
-        await user.save();
-        
-        console.log("PDF text downloaded and cached successfully");
-        return pdfData.text;
+        // If we reach here, it's an old upload from before we added text extraction
+        console.log("Old CV format detected. User must re-upload.");
+        return "Veuillez re-uploader votre CV pour l'analyse.";
         
     } catch (err) {
         console.error("Error extracting CV text:", err);
