@@ -581,9 +581,9 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
             </>
         )}
 
-        {/* CAS 2 : Entretien Réel -> Accepter ou Refuser (Uniquement quand l'heure est passée) */}
+        {/* CAS 2 : Entretien Réel -> Accepter ou Refuser (Quand l'heure est passée OU terminé manuellement) */}
         {selectedInterview.interviewType === 'reel' && (
-            isInterviewPassed(selectedInterview.creneauChoisi) ? (
+            (isInterviewPassed(selectedInterview.creneauChoisi) || selectedInterview.etapeEntretien === 'termine' || selectedInterview.statut === 'evaluation_en_cours') ? (
                 <>
                     <button
                         onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'embauché')}
@@ -602,7 +602,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                 </>
             ) : (
                 <div style={{ width: '100%', textAlign: 'center', color: textSecondary, padding: '10px', fontWeight: 'bold' }}>
-                    ⏳ La décision finale sera disponible une fois l'heure de l'entretien écoulée.
+                    ⏳ La décision finale sera disponible une fois l'entretien terminé.
                 </div>
             )
         )}
@@ -626,44 +626,53 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                     offre={{ _id: schedulingInterview.offreId }}
                     onClose={() => setSchedulingInterview(null)}
                     onConfirm={async (creneau) => {
-                        try {
-                            // ✅ THE FIX: Safely extract IDs whether we are in Candidats.jsx or EntretienRecruteur.jsx
-                            const safeCandidatureId = schedulingInterview.candidatureId || schedulingInterview._id;
-                            const safeOffreId = schedulingInterview.offreId || schedulingInterview.idOffre || schedulingInterview.offre?._id;
-                            
-                            // Handle cases where etudiantId is a populated object instead of a raw string
-                            const safeEtudiantId = schedulingInterview.etudiantId?._id || schedulingInterview.etudiantId || schedulingInterview.etudiant?._id;
+    try {
+        const safeCandidatureId = schedulingInterview.candidatureId || schedulingInterview._id;
+        const safeOffreId = schedulingInterview.offreId || schedulingInterview.idOffre || schedulingInterview.offre?._id;
+        const safeEtudiantId = schedulingInterview.etudiantId?._id || schedulingInterview.etudiantId || schedulingInterview.etudiant?._id;
 
-                            const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    candidatureId: safeCandidatureId,
-                                    offreId: safeOffreId,
-                                    etudiantId: safeEtudiantId,
-                                    creneau: {
-                                        date: creneau.date,
-                                        heureDebut: creneau.heureDebut,
-                                        heureFin: creneau.heureFin
-                                    }
-                                })
-                            });
+        // 1. UPDATE STATUS: Tell the database this is now a Real Interview
+        await fetch(`https://pfe-backend-five.vercel.app/offres/${safeOffreId}/candidatures/${safeCandidatureId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                statut: 'acceptée',
+                commentaire: `Suite à votre évaluation IA, un entretien réel a été planifié le ${creneau.date} à ${creneau.heureDebut}`,
+                interviewType: 'reel',
+                etapeEntretien: 'creneau_choisi'
+            })
+        });
 
-                            if (res.ok) {
-                                setMessage(`✅ Entretien réel planifié avec succès pour le ${creneau.date}.`);
-                                setSchedulingInterview(null);
-                                setShowModal(false);
-                                fetchInterviews(user.id); // Recharger la liste
-                            } else {
-                                setMessage('❌ Erreur lors de la planification.');
-                                setSchedulingInterview(null);
-                            }
-                        } catch (err) {
-                            console.error(err);
-                            setMessage('❌ Erreur de connexion au serveur.');
-                            setSchedulingInterview(null);
-                        }
-                    }}
+        // 2. SCHEDULE SLOT: Flatten the keys to match server.js and include the recruiter ID
+        const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idCandidature: safeCandidatureId,
+                idOffre: safeOffreId,
+                idEtudiant: safeEtudiantId,
+                idRecruteur: user.id,             // ADDED: Essential for backend auth
+                date: creneau.date,               // FLATTENED
+                heureDebut: creneau.heureDebut,   // FLATTENED
+                heureFin: creneau.heureFin        // FLATTENED
+            })
+        });
+
+        if (res.ok) {
+            setMessage(`✅ Entretien réel planifié avec succès pour le ${creneau.date}.`);
+            setSchedulingInterview(null);
+            setShowModal(false);
+            fetchInterviews(user.id); // Reload the list
+        } else {
+            setMessage('❌ Erreur lors de la planification.');
+            setSchedulingInterview(null);
+        }
+    } catch (err) {
+        console.error(err);
+        setMessage('❌ Erreur de connexion au serveur.');
+        setSchedulingInterview(null);
+    }
+}}
                     mode="recruteur"
                 />
             )}
