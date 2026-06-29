@@ -125,8 +125,7 @@ function EntretienRecruteur() {
                             offreId: offre._id,
                             offreTitre: offre.titre,
                             etudiantNom: etudiantNom,
-                            estTermine: candidature.statut === 'embauché' || candidature.statut === 'refusée_final'
-                        });
+                            estTermine: ['embauché', 'refusée_final', 'proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(candidature.statut)                        });
                     }
                 }
             }
@@ -163,12 +162,12 @@ function EntretienRecruteur() {
 
     // --- ACTIONS FINALES ---
     const handleFinalDecision = async (offreId, candidatureId, decision) => {
-        if (!window.confirm(`Êtes-vous sûr de vouloir ${decision === 'embauché' ? 'ACCEPTER DÉFINITIVEMENT' : 'REFUSER DÉFINITIVEMENT'} ce candidat ? Cette action clôture le processus.`)) return;
+        if (!window.confirm(`Êtes-vous sûr de vouloir ${decision === 'proposition_envoyee' ? 'FAIRE UNE PROPOSITION' : 'REFUSER DÉFINITIVEMENT'} ce candidat ? Cette action clôture la phase d'entretien.`)) return;
         
         setIsSubmitting(true);
         try {
-            const commentaireFinal = decision === 'embauché' 
-                ? "Félicitations, vous êtes retenu pour ce poste suite à votre entretien !" 
+            const commentaireFinal = decision === 'proposition_envoyee' 
+                ? "Félicitations ! Suite à votre entretien, nous souhaitons vous faire une proposition de recrutement." 
                 : "Suite à votre entretien, nous ne pouvons malheureusement pas donner suite à votre candidature.";
 
             const res = await fetch(`https://pfe-backend-five.vercel.app/offres/${offreId}/candidatures/${candidatureId}`, {
@@ -181,9 +180,9 @@ function EntretienRecruteur() {
             });
 
             if (res.ok) {
-                setMessage(`✅ Candidat ${decision === 'embauché' ? 'accepté' : 'refusé'} avec succès.`);
+                setMessage(`✅ ${decision === 'proposition_envoyee' ? 'Proposition envoyée' : 'Candidat refusé'} avec succès.`);
                 setShowModal(false);
-                fetchInterviews(user.id); // Recharger
+                fetchInterviews(user.id); 
                 setTimeout(() => setMessage(''), 4000);
             } else {
                 setMessage(`❌ Erreur lors de l'enregistrement de la décision.`);
@@ -194,7 +193,8 @@ function EntretienRecruteur() {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    };  
+
     const handleTerminerVisio = async (offreId, candidatureId) => {
         if (!window.confirm("Voulez-vous vraiment clôturer cet appel ? L'étudiant verra que l'entretien est terminé.")) return;
         
@@ -359,7 +359,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                         const canJoin = isReal && isInterviewTime(interview.creneauChoisi);
                         const isPassed = isReal && isInterviewPassed(interview.creneauChoisi);
                         const timeUntil = isReal ? getTimeUntilInterview(interview.creneauChoisi) : null;
-                        const hasDecision = interview.statut === 'embauché' || interview.statut === 'refusée_final';
+                        const hasDecision = ['embauché', 'refusée_final', 'proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(interview.statut);
 
                         return (
                             <div key={interview.candidatureId} style={{
@@ -586,11 +586,11 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
             (isInterviewPassed(selectedInterview.creneauChoisi) || selectedInterview.etapeEntretien === 'termine' || selectedInterview.statut === 'evaluation_en_cours') ? (
                 <>
                     <button
-                        onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'embauché')}
+                        onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'proposition_envoyee')}
                         disabled={isSubmitting}
                         style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #28a745, #20c997)', color: 'white', border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
                     >
-                        {icons.checkCircle} Accepter (Embaucher)
+                        {icons.checkCircle} Faire une proposition
                     </button>
                     <button
                         onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'refusée_final')}
