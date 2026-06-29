@@ -25,24 +25,28 @@ function Propositions() {
     const fetchPropositions = async (userData) => {
         setLoading(true);
         try {
-            // Utilisation de vos routes existantes pour récupérer les données
             if (userData.role === 'Etudiant') {
                 const res = await fetch(`https://pfe-backend-five.vercel.app/candidatures/etudiant/${userData.id}`);
                 const data = await res.json();
-                // On ne garde que les candidatures en phase finale
-                const finalStages = data.filter(c => 
-                    ['proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(c.statut)
-                );
+                
+                // FIX: Normalize the backend key 'statutCandidature' to 'statut'
+                const finalStages = data
+                    .map(c => ({ ...c, statut: c.statutCandidature }))
+                    .filter(c => 
+                        ['proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(c.statut)
+                    );
+                    
                 setPropositions(finalStages);
+                
             } else if (userData.role === 'Recruteur') {
                 const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${userData.id}`);
                 const data = await res.json();
                 const offres = data.offers || data;
                 
-                // Extraire toutes les candidatures en phase finale de toutes les offres
                 let finalCandidates = [];
                 offres.forEach(offre => {
                     offre.candidatures.forEach(c => {
+                        // Recruiter endpoint correctly uses 'statut'
                         if (['proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(c.statut)) {
                             finalCandidates.push({ ...c, offreInfo: offre });
                         }
