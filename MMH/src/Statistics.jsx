@@ -48,7 +48,7 @@ function Statistics() {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: textPrimary }}>
                 <div style={{ animation: 'spin 1s linear infinite', marginRight: '10px' }}>{icons.activity}</div>
-                Chargement des statistiques Adawn...
+                Chargement des statistiques...
             </div>
         );
     }
