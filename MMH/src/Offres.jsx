@@ -531,7 +531,7 @@ function Offres() {
             const res = await fetch(`https://pfe-backend-five.vercel.app/users/${user.id}`);
             const userData = await res.json();
             if (!userData.cv || !userData.cv.filename) {
-                setMessage("❌ Vous devez d'abord télécharger votre CV.");
+                setMessage("Erreur : Vous devez d'abord télécharger votre CV.");
                 setTimeout(() => setMessage(''), 4000);
                 return false;
             }
