@@ -731,13 +731,7 @@ function SignUp(){
                         whileTap={!loading ? { scale: 0.98 } : {}}
                     >
                         {loading ? (
-                            <motion.span
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: isDark ? 'rgba(254, 250, 224, 0.5)' : '#94a3b8' }}
-                            >
-                                {icons.spinner} Création...
-                            </motion.span>
+                             "Création..."
                         ) : (
                             "Créer mon compte"
                         )}
