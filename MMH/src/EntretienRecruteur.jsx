@@ -406,28 +406,38 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     {/* Actions Entretien Réel */}
-                                    {isReal && !hasDecision && (
-                                        <>
-                                            {/* Bouton Rejoindre disparaît si l'évaluation est en cours */}
-                                            {interview.statut !== 'evaluation_en_cours' && (
-                                                <button
-                                                    onClick={() => {
-                                                        if (canJoin && interview.lienVisio) window.open(interview.lienVisio, '_blank');
-                                                    }}
-                                                    disabled={!canJoin || !interview.lienVisio}
-                                                    style={{
-                                                        padding: '10px 20px',
-                                                        background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
-                                                        color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
-                                                        border: 'none', borderRadius: '10px', cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
-                                                        fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
-                                                        animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none'
-                                                    }}
-                                                >
-                                                    {(canJoin && interview.lienVisio) ? icons.video : icons.hourglass}
-                                                    {(canJoin && interview.lienVisio) ? "Rejoindre l'appel" : `Rejoindre (${timeUntil})`}
-                                                </button>
-                                            )}
+{isReal && !hasDecision && (
+    <>
+        {/* FIX: Bouton Rejoindre est toujours visible tant que l'heure est valide (canJoin) */}
+        <button
+            onClick={() => {
+                if (canJoin && interview.lienVisio) window.open(interview.lienVisio, '_blank');
+            }}
+            disabled={!canJoin || !interview.lienVisio}
+            style={{
+                padding: '10px 20px',
+                background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
+                color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
+                border: 'none', borderRadius: '10px', cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
+                fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
+                animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none'
+            }}
+        >
+            {(canJoin && interview.lienVisio) ? icons.video : icons.hourglass}
+            {(canJoin && interview.lienVisio) ? "Rejoindre l'appel" : `Rejoindre (${timeUntil})`}
+        </button>
+
+        {/* NOUVEAU BOUTON : Terminer l'entretien manuellement (disparaît après le clic) */}
+        {interview.statut !== 'evaluation_en_cours' && canJoin && (
+            <button 
+                onClick={() => handleTerminerVisio(interview.offreId, interview.candidatureId)}
+                style={{ 
+                    padding: '10px 15px', background: 'transparent', border: '1px solid #dc3545', 
+                    color: '#dc3545', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' 
+                }}>
+                Terminer
+            </button>
+        )}
 
                                             {/* NOUVEAU BOUTON : Terminer l'entretien manuellement */}
                                             {interview.statut !== 'evaluation_en_cours' && canJoin && (
