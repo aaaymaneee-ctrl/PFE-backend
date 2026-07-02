@@ -382,59 +382,92 @@ function EntretienRecruteur() {
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     {/* Actions Entretien Réel */}
-                                    {isReal && !hasDecision && (
-                                        <>
-                                            {/* Bouton Rejoindre */}
-                                            <button
-    onClick={() => {
-        if (canJoin && interview.lienVisio) {
-            window.open(interview.lienVisio, '_blank');
-            console.log("Joining interview:", interview.lienVisio);
-        } else {
-            console.log("Cannot join - canJoin:", canJoin, "lienVisio:", interview.lienVisio);
-        }
-    }}
-    disabled={!canJoin || !interview.lienVisio}
-    style={{
-        padding: '10px 20px',
-        background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
-        color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
-        border: 'none', 
-        borderRadius: '10px', 
-        cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
-        fontWeight: 'bold', 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '6px',
-        animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none',
-        opacity: (!canJoin || !interview.lienVisio) ? 0.5 : 1
-    }}
->
-                                                {(canJoin && interview.lienVisio) ? icons.video : icons.hourglass}
-                                                {(canJoin && interview.lienVisio) ? "Rejoindre l'appel" : `Rejoindre (${timeUntil})`}
-                                            </button>
+                                    {/* Bouton Rejoindre */}
+{isReal && !hasDecision && (
+    <>
+        {canJoin && interview.lienVisio ? (
+            <a
+                href={interview.lienVisio}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #28a745, #20c997)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    animation: 'pulse 2s infinite',
+                    textDecoration: 'none'
+                }}
+            >
+                {icons.video}
+                Rejoindre l'appel
+            </a>
+        ) : (
+            <button
+                disabled
+                style={{
+                    padding: '10px 20px',
+                    background: isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0',
+                    color: isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'not-allowed',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                }}
+            >
+                {icons.hourglass}
+                Rejoindre ({timeUntil})
+            </button>
+        )}
 
-                                            {/* Bouton Terminer */}
-                                            {interview.statut !== 'evaluation_en_cours' && canJoin && (
-                                                <button 
-                                                    onClick={() => handleTerminerVisio(interview.offreId, interview.candidatureId)}
-                                                    style={{ 
-                                                        padding: '10px 15px', background: 'transparent', border: '1px solid #dc3545', 
-                                                        color: '#dc3545', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' 
-                                                    }}>
-                                                    Terminer
-                                                </button>
-                                            )}
-                                            
-                                            {/* Décision Finale */}
-                                            {(isPassed || interview.statut === 'evaluation_en_cours') && (
-                                                <button onClick={() => { setSelectedInterview(interview); setShowModal(true); }}
-                                                    style={{ padding: '10px 20px', background: 'transparent', border: `1px solid #6c63ff`, color: '#6c63ff', borderRadius: '10px', cursor: 'pointer' }}>
-                                                    Décision Finale
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
+        {/* Bouton Terminer */}
+        {interview.statut !== 'evaluation_en_cours' && canJoin && (
+            <button 
+                onClick={() => handleTerminerVisio(interview.offreId, interview.candidatureId)}
+                style={{ 
+                    padding: '10px 15px', 
+                    background: 'transparent', 
+                    border: '1px solid #dc3545', 
+                    color: '#dc3545', 
+                    borderRadius: '10px', 
+                    cursor: 'pointer', 
+                    fontWeight: 'bold' 
+                }}
+            >
+                Terminer
+            </button>
+        )}
+        
+        {/* Décision Finale */}
+        {(isPassed || interview.statut === 'evaluation_en_cours') && (
+            <button 
+                onClick={() => { 
+                    setSelectedInterview(interview); 
+                    setShowModal(true); 
+                }}
+                style={{ 
+                    padding: '10px 20px', 
+                    background: 'transparent', 
+                    border: `1px solid #6c63ff`, 
+                    color: '#6c63ff', 
+                    borderRadius: '10px', 
+                    cursor: 'pointer' 
+                }}
+            >
+                Décision Finale
+            </button>
+        )}
+    </>
+)}
 
                                     {/* Actions Entretien IA */}
                                     {!isReal && !hasDecision && (
