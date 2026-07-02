@@ -387,8 +387,8 @@ function EntretienRecruteur() {
                                             {/* Bouton Rejoindre */}
                                             <button
                                                 onClick={() => {
-                                                    if (canJoin && interview.lienVisio) {
-                                                        window.open(interview.lienVisio, '_blank');
+                                                    if (canJoin && interviews.lienVisio) {
+                                                        window.open(interviews.lienVisio, '_blank');
                                                         console.log("it works");
                                                     }
                                                 }}
