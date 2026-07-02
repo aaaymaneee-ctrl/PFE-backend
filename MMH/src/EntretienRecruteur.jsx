@@ -409,50 +409,51 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
 {isReal && !hasDecision && (
     <>
         {/* FIX: Bouton Rejoindre est toujours visible tant que l'heure est valide (canJoin) */}
+        {/* FIX: Bouton Rejoindre est toujours visible tant que l'heure est valide (canJoin) */}
         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (canJoin && offer.lienVisio) {
-                                    window.open(offer.lienVisio, '_blank');
-                                }
-                            }}
-                            disabled={!canJoin || !offer.lienVisio}
-                            style={{
-                                padding: '14px 32px',
-                                background: (canJoin && offer.lienVisio) 
-                                    ? 'linear-gradient(135deg, #28a745, #20c997)'
-                                    : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
-                                color: (canJoin && offer.lienVisio) 
-                                    ? 'white' 
-                                    : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
-                                border: 'none',
-                                borderRadius: '12px',
-                                cursor: (canJoin && offer.lienVisio) ? 'pointer' : 'not-allowed',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                transition: 'all 0.3s',
-                                boxShadow: (canJoin && offer.lienVisio) ? '0 4px 20px rgba(40, 167, 69, 0.4)' : 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                animation: (canJoin && offer.lienVisio) ? 'pulseButton 2s infinite' : 'none'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (canJoin && offer.lienVisio) {
-                                    e.target.style.transform = 'translateY(-2px)';
-                                    e.target.style.boxShadow = '0 8px 30px rgba(40, 167, 69, 0.5)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (canJoin && offer.lienVisio) {
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 4px 20px rgba(40, 167, 69, 0.4)';
-                                }
-                            }}
-                        >
-                            {canJoin && offer.lienVisio ? icons.video : icons.hourglass}
-                            {(canJoin && offer.lienVisio) ? "Rejoindre l'entretien" : `Rejoindre (${timeUntil})`}
-                        </button>
+            onClick={(e) => {
+                e.stopPropagation();
+                if (canJoin && interview.lienVisio) {
+                    window.open(interview.lienVisio, '_blank');
+                }
+            }}
+            disabled={!canJoin || !interview.lienVisio}
+            style={{
+                padding: '14px 32px',
+                background: (canJoin && interview.lienVisio) 
+                    ? 'linear-gradient(135deg, #28a745, #20c997)'
+                    : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
+                color: (canJoin && interview.lienVisio) 
+                    ? 'white' 
+                    : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
+                border: 'none',
+                borderRadius: '12px',
+                cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                transition: 'all 0.3s',
+                boxShadow: (canJoin && interview.lienVisio) ? '0 4px 20px rgba(40, 167, 69, 0.4)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                animation: (canJoin && interview.lienVisio) ? 'pulseButton 2s infinite' : 'none'
+            }}
+            onMouseEnter={(e) => {
+                if (canJoin && interview.lienVisio) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 30px rgba(40, 167, 69, 0.5)';
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (canJoin && interview.lienVisio) {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 20px rgba(40, 167, 69, 0.4)';
+                }
+            }}
+        >
+            {canJoin && interview.lienVisio ? icons.video : icons.hourglass}
+            {(canJoin && interview.lienVisio) ? "Rejoindre l'entretien" : `Rejoindre (${timeUntil})`}
+        </button>
 
         {/* NOUVEAU BOUTON : Terminer l'entretien manuellement (disparaît après le clic) */}
         {interview.statut !== 'evaluation_en_cours' && canJoin && (
