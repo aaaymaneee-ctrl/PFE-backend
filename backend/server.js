@@ -608,9 +608,23 @@ app.get("/users/:userId/cv", async (req, res) => {
             return res.status(404).json({ error: "Aucun CV trouvé" });
         }
 
-        // Redirect the browser directly to the Cloudinary PDF
-        res.redirect(user.cv.path);
+        // Extract the public_id from the Cloudinary URL
+        const urlParts = user.cv.path.split('/');
+        const filenameWithExtension = urlParts[urlParts.length - 1];
+        const publicId = `cv_uploads/${filenameWithExtension.split('.')[0]}`;
+        
+        // Generate a signed URL that expires in 1 hour
+        const signedUrl = cloudinary.url(publicId, {
+            resource_type: "raw",
+            type: "upload",
+            sign_url: true,
+            expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour
+        });
+        
+        // Redirect to the signed URL
+        res.redirect(signedUrl);
     } catch (err) {
+        console.error("Error generating CV URL:", err);
         res.status(500).json({ error: err.message });
     }
 });
