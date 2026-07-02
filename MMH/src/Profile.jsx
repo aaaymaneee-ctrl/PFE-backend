@@ -210,12 +210,6 @@ function Profile() {
         }
     }, []);
 
-    const handleViewCV = () => {
-        if (user && user.id) {
-            window.open(`https://pfe-backend-five.vercel.app/users/${user.id}/cv`, '_blank');
-        }
-    };
-
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/login');
@@ -571,33 +565,42 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                                     </div>
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <button
-                                            onClick={handleViewCV}
-                                            style={{
-                                                flex: 1,
-                                                padding: '12px',
-                                                background: 'linear-gradient(135deg, #6c63ff, #4834d4)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                fontSize: '14px',
-                                                fontWeight: 'bold',
-                                                transition: 'all 0.3s',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.target.style.transform = 'translateY(-2px)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.target.style.transform = 'translateY(0)';
-                                            }}
-                                        >
-                                            {icons.eye} Voir CV
-                                        </button>
+                                        <a
+    href={`https://pfe-backend-five.vercel.app/users/${user.id}/cv`}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+        flex: 1,
+        textDecoration: 'none'
+    }}
+>
+    <button
+        style={{
+            width: '100%',
+            padding: '12px',
+            background: 'linear-gradient(135deg, #6c63ff, #4834d4)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px'
+        }}
+        onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+        }}
+    >
+        {icons.eye} Voir CV
+    </button>
+</a>
                                         
                                         <button
                                             onClick={() => navigate('/dashboard/cvupload')}
