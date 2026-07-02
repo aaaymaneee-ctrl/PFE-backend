@@ -610,9 +610,30 @@ app.get("/users/:userId/cv", async (req, res) => {
             return res.status(404).json({ error: "Aucun CV trouvé" });
         }
 
-        // Redirect the browser directly to the Cloudinary PDF
-        res.redirect(user.cv.path);
+        // Extract the public_id from the Cloudinary URL
+        const urlParts = user.cv.path.split('/');
+        const filenameWithExtension = urlParts[urlParts.length - 1];
+        const publicId = `cv_uploads/${filenameWithExtension.split('.')[0]}`;
+        
+        // Generate a signed URL
+        const signedUrl = cloudinary.url(publicId, {
+            resource_type: "raw",
+            type: "upload",
+            sign_url: true,
+            expires_at: Math.floor(Date.now() / 1000) + 3600
+        });
+        
+        // Fetch the file from Cloudinary
+        const response = await fetch(signedUrl);
+        const buffer = await response.arrayBuffer();
+        
+        // Send it to the browser
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${user.cv.originalName || 'cv.pdf'}"`);
+        res.send(Buffer.from(buffer));
+        
     } catch (err) {
+        console.error("Error fetching CV:", err);
         res.status(500).json({ error: err.message });
     }
 });
