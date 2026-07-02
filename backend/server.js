@@ -468,16 +468,25 @@ app.post("/users/:userId/cv", upload.single("cv"), async (req, res) => {
         const cld_upload_stream = cloudinary.uploader.upload_stream(
             {
                 folder: "cv_uploads",
-                resource_type: "raw",
+                resource_type: "raw", // 'raw' is necessary for PDFs
                 format: "pdf",
                 type: "upload",
-                access_mode: "public"  // Add this line to make files public
+                access_mode: "public"  // ADD THIS LINE - makes files publicly accessible
             },
             (error, result) => {
                 if (error) reject(error);
                 else resolve(result);
             }
         );
+        
+        // Convert Node buffer to a stream and pipe it to Cloudinary
+        const { Readable } = require('stream');
+        const readableStream = new Readable();
+        readableStream.push(buffer);
+        readableStream.push(null);
+        readableStream.pipe(cld_upload_stream);
+    });
+};
 
         const cloudResult = await uploadToCloudinary(pdfBuffer);
 
