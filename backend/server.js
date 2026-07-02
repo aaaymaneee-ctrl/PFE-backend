@@ -464,27 +464,20 @@ app.post("/users/:userId/cv", upload.single("cv"), async (req, res) => {
 
         // 2. UPLOAD TO CLOUDINARY (Using Stream)
         const uploadToCloudinary = (buffer) => {
-            return new Promise((resolve, reject) => {
-                const cld_upload_stream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: "cv_uploads",
-                        resource_type: "raw", // 'raw' is necessary for PDFs
-                        format: "pdf"
-                    },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
-                
-                // Convert Node buffer to a stream and pipe it to Cloudinary
-                const { Readable } = require('stream');
-                const readableStream = new Readable();
-                readableStream.push(buffer);
-                readableStream.push(null);
-                readableStream.pipe(cld_upload_stream);
-            });
-        };
+    return new Promise((resolve, reject) => {
+        const cld_upload_stream = cloudinary.uploader.upload_stream(
+            {
+                folder: "cv_uploads",
+                resource_type: "raw",
+                format: "pdf",
+                type: "upload",
+                access_mode: "public"  // Add this line to make files public
+            },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
 
         const cloudResult = await uploadToCloudinary(pdfBuffer);
 
@@ -608,23 +601,9 @@ app.get("/users/:userId/cv", async (req, res) => {
             return res.status(404).json({ error: "Aucun CV trouvé" });
         }
 
-        // Extract the public_id from the Cloudinary URL
-        const urlParts = user.cv.path.split('/');
-        const filenameWithExtension = urlParts[urlParts.length - 1];
-        const publicId = `cv_uploads/${filenameWithExtension.split('.')[0]}`;
-        
-        // Generate a signed URL that expires in 1 hour
-        const signedUrl = cloudinary.url(publicId, {
-            resource_type: "raw",
-            type: "upload",
-            sign_url: true,
-            expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour
-        });
-        
-        // Redirect to the signed URL
-        res.redirect(signedUrl);
+        // Redirect the browser directly to the Cloudinary PDF
+        res.redirect(user.cv.path);
     } catch (err) {
-        console.error("Error generating CV URL:", err);
         res.status(500).json({ error: err.message });
     }
 });
