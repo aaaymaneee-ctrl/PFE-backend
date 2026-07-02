@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { useTheme } from './ThemeContext.jsx';
 import CalendrierEntretien from './CalendrierEntretien.jsx';
 
-
-
 function EntretienRecruteur() {
     const { isDark } = useTheme();
     const [user, setUser] = useState(null);
@@ -14,8 +12,9 @@ function EntretienRecruteur() {
     const [selectedInterview, setSelectedInterview] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [activeTab, setActiveTab] = useState('tous'); // 'tous', 'reel', 'ai'
+    const [activeTab, setActiveTab] = useState('tous'); 
     const [schedulingInterview, setSchedulingInterview] = useState(null);
+    
     // Variables de thème
     const textPrimary = isDark ? 'white' : '#0f172a';
     const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
@@ -37,7 +36,6 @@ function EntretienRecruteur() {
         chat: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>)
     };
 
-    // --- FONCTIONS DE TEMPS SÉCURISÉES ---
     const isInterviewTime = (creneauChoisi) => {
         if (!creneauChoisi?.date || !creneauChoisi?.heureDebut) return false;
         
@@ -48,9 +46,8 @@ function EntretienRecruteur() {
         
         const interviewDate = new Date(year, month - 1, day, hours, minutes, 0);
         
-        // Autoriser de rejoindre 5 minutes avant
         const earlyAccess = new Date(interviewDate.getTime() - 5 * 60000);
-        const interviewEnd = new Date(interviewDate.getTime() + 60 * 60000); // 1h d'entretien
+        const interviewEnd = new Date(interviewDate.getTime() + 60 * 60000);
         
         return now >= earlyAccess && now <= interviewEnd;
     };
@@ -63,12 +60,10 @@ function EntretienRecruteur() {
         const [hours, minutes] = creneauChoisi.heureDebut.split(':');
         
         const interviewEndTime = new Date(year, month - 1, day, parseInt(hours), parseInt(minutes), 0);
-        interviewEndTime.setMinutes(interviewEndTime.getMinutes() + 60); // 1h après
+        interviewEndTime.setMinutes(interviewEndTime.getMinutes() + 60);
         
         return now > interviewEndTime;
     };
-
-    const [customConfirm, setCustomConfirm] = useState({ show: false, message: '', onConfirm: null });
 
     const getTimeUntilInterview = (creneauChoisi) => {
         if (!creneauChoisi?.date || !creneauChoisi?.heureDebut) return null;
@@ -92,7 +87,6 @@ function EntretienRecruteur() {
         return 'Très bientôt';
     };
 
-    // --- CHARGEMENT DES DONNÉES ---
     const fetchInterviews = async (recruteurId) => {
         try {
             const res = await fetch(`https://pfe-backend-five.vercel.app/offres/recruteur/${recruteurId}`);
@@ -104,12 +98,10 @@ function EntretienRecruteur() {
                 if (!offre.candidatures) continue;
                 
                 for (const candidature of offre.candidatures) {
-                    // On filtre : On veut les IA terminées OU les réels planifiés/terminés
                     if (
                         (candidature.interviewType === 'ai' && candidature.scoreEntretien) ||
                         (candidature.interviewType === 'reel' && candidature.creneauChoisi)
                     ) {
-                        // Récupérer le nom de l'étudiant
                         let etudiantNom = 'Candidat inconnu';
                         try {
                             const userRes = await fetch(`https://pfe-backend-five.vercel.app/users/${candidature.etudiantId}`);
@@ -125,12 +117,12 @@ function EntretienRecruteur() {
                             offreId: offre._id,
                             offreTitre: offre.titre,
                             etudiantNom: etudiantNom,
-                            estTermine: ['embauché', 'refusée_final', 'proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(candidature.statut)                        });
+                            estTermine: ['embauché', 'refusée_final', 'proposition_envoyee', 'embauche_acceptee', 'embauche_refusee'].includes(candidature.statut)                        
+                        });
                     }
                 }
             }
             
-            // Tri par date de création ou de créneau
             allInterviews.sort((a, b) => {
                 if (a.creneauChoisi?.date && b.creneauChoisi?.date) {
                     return new Date(b.creneauChoisi.date) - new Date(a.creneauChoisi.date);
@@ -160,7 +152,6 @@ function EntretienRecruteur() {
         }
     }, []);
 
-    // --- ACTIONS FINALES ---
     const handleFinalDecision = async (offreId, candidatureId, decision) => {
         if (!window.confirm(`Êtes-vous sûr de vouloir ${decision === 'proposition_envoyee' ? 'FAIRE UNE PROPOSITION' : 'REFUSER DÉFINITIVEMENT'} ce candidat ? Cette action clôture la phase d'entretien.`)) return;
         
@@ -205,7 +196,7 @@ function EntretienRecruteur() {
             
             if (res.ok) {
                 setMessage('✅ Entretien terminé. Vous pouvez maintenant saisir votre décision finale.');
-                fetchInterviews(user.id); // Rafraîchir la liste
+                fetchInterviews(user.id); 
                 window.scrollTo(0, 0);
             } else {
                 setMessage('❌ Erreur lors de la clôture de l\'entretien.');
@@ -214,6 +205,7 @@ function EntretienRecruteur() {
             setMessage('❌ Erreur de connexion au serveur.');
         }
     };
+
     const renderScoreBar = (label, score, max = 30) => {
         const percentage = (score / max) * 100;
         return (
@@ -237,9 +229,8 @@ function EntretienRecruteur() {
         return i.interviewType === activeTab;
     });
 
-
     const safeMessageStr = String(message?.props?.children || message);
-const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.includes('Impossible');
+    const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.includes('Impossible');
 
     return (
         <div>
@@ -251,83 +242,68 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
             </div>
 
             {message && (
-        <div 
-            onClick={() => setMessage(null)} // Un clic n'importe où (même sur la carte) ferme l'alerte
-            style={{
-                position: 'fixed',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(0, 0, 0, 0.4)', // Fond semi-transparent
-                backdropFilter: 'blur(8px)', // Floutage de l'arrière-plan
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer'
-            }}
-        >
-            {/* Injection des animations CSS en direct */}
-            <style>
-            {`
-                .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-                @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-                
-                .svg-icon { width: 80px; height: 80px; stroke-width: 3; stroke-miterlimit: 10; margin: 0 auto 20px; display: block; }
-                .svg-circle { stroke-dasharray: 166; stroke-dashoffset: 166; fill: none; animation: drawStroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
-                .svg-check { stroke-dasharray: 48; stroke-dashoffset: 48; animation: drawStroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards; }
-                .svg-cross { stroke-dasharray: 48; stroke-dashoffset: 48; animation: drawStroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards; }
-                
-                @keyframes drawStroke { 100% { stroke-dashoffset: 0; } }
-            `}
-            </style>
+                <div 
+                    onClick={() => setMessage(null)}
+                    style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        backdropFilter: 'blur(8px)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <style>
+                    {`
+                        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+                        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+                        
+                        .svg-icon { width: 80px; height: 80px; stroke-width: 3; stroke-miterlimit: 10; margin: 0 auto 20px; display: block; }
+                        .svg-circle { stroke-dasharray: 166; stroke-dashoffset: 166; fill: none; animation: drawStroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+                        .svg-check { stroke-dasharray: 48; stroke-dashoffset: 48; animation: drawStroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards; }
+                        .svg-cross { stroke-dasharray: 48; stroke-dashoffset: 48; animation: drawStroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards; }
+                        
+                        @keyframes drawStroke { 100% { stroke-dashoffset: 0; } }
+                    `}
+                    </style>
 
-            {/* La Carte Blanche */}
-            <div 
-                className="animate-pop"
-                style={{
-                    background: '#ffffff', // Blanc pur pour faire ressortir l'icône
-                    padding: '40px 50px',
-                    borderRadius: '24px',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                    textAlign: 'center',
-                    maxWidth: '400px',
-                    width: '90%'
-                }}
-            >
-                {/* L'icône SVG Animée (Succès ou Erreur) */}
-                {isErrorMessage ? (
-                    <svg className="svg-icon" style={{ stroke: '#ef4444' }} viewBox="0 0 52 52">
-                        <circle className="svg-circle" cx="26" cy="26" r="25" />
-                        <path className="svg-cross" fill="none" strokeLinecap="round" d="M16,16 L36,36 M36,16 L16,36" />
-                    </svg>
-                ) : (
-                    <svg className="svg-icon" style={{ stroke: '#10b981' }} viewBox="0 0 52 52">
-                        <circle className="svg-circle" cx="26" cy="26" r="25" />
-                        <path className="svg-check" fill="none" strokeLinecap="round" strokeLinejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-                    </svg>
-                )}
-                
-                {/* Titre Succès / Erreur */}
-                <h3 style={{ 
-                    margin: '0 0 10px 0', 
-                    color: isErrorMessage ? '#ef4444' : '#10b981',
-                    fontSize: '24px',
-                    fontWeight: 'bold'
-                }}>
-                    {isErrorMessage ? 'Erreur' : 'Succès !'}
-                </h3>
-                
-                {/* Le message exact */}
-                <p style={{ 
-                    color: '#64748b', 
-                    fontSize: '16px', 
-                    margin: '0',
-                    lineHeight: '1.5'
-                }}>
-                    {safeMessageStr}
-                </p>
-            </div>
-        </div>
-    )}
+                    <div 
+                        className="animate-pop"
+                        style={{
+                            background: '#ffffff',
+                            padding: '40px 50px',
+                            borderRadius: '24px',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                            textAlign: 'center',
+                            maxWidth: '400px',
+                            width: '90%'
+                        }}
+                    >
+                        {isErrorMessage ? (
+                            <svg className="svg-icon" style={{ stroke: '#ef4444' }} viewBox="0 0 52 52">
+                                <circle className="svg-circle" cx="26" cy="26" r="25" />
+                                <path className="svg-cross" fill="none" strokeLinecap="round" d="M16,16 L36,36 M36,16 L16,36" />
+                            </svg>
+                        ) : (
+                            <svg className="svg-icon" style={{ stroke: '#10b981' }} viewBox="0 0 52 52">
+                                <circle className="svg-circle" cx="26" cy="26" r="25" />
+                                <path className="svg-check" fill="none" strokeLinecap="round" strokeLinejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                            </svg>
+                        )}
+                        
+                        <h3 style={{ margin: '0 0 10px 0', color: isErrorMessage ? '#ef4444' : '#10b981', fontSize: '24px', fontWeight: 'bold' }}>
+                            {isErrorMessage ? 'Erreur' : 'Succès !'}
+                        </h3>
+                        
+                        <p style={{ color: '#64748b', fontSize: '16px', margin: '0', lineHeight: '1.5' }}>
+                            {safeMessageStr}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Onglets de filtrage */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
@@ -406,68 +382,28 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     {/* Actions Entretien Réel */}
-{isReal && !hasDecision && (
-    <>
-        {/* FIX: Bouton Rejoindre est toujours visible tant que l'heure est valide (canJoin) */}
-        {/* FIX: Bouton Rejoindre est toujours visible tant que l'heure est valide (canJoin) */}
-        <button
-            onClick={(e) => {
-                e.stopPropagation();
-                if (canJoin && interview.lienVisio) {
-                    window.open(interview.lienVisio, '_blank');
-                }
-            }}
-            disabled={!canJoin || !interview.lienVisio}
-            style={{
-                padding: '14px 32px',
-                background: (canJoin && interview.lienVisio) 
-                    ? 'linear-gradient(135deg, #28a745, #20c997)'
-                    : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
-                color: (canJoin && interview.lienVisio) 
-                    ? 'white' 
-                    : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
-                border: 'none',
-                borderRadius: '12px',
-                cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                transition: 'all 0.3s',
-                boxShadow: (canJoin && interview.lienVisio) ? '0 4px 20px rgba(40, 167, 69, 0.4)' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                animation: (canJoin && interview.lienVisio) ? 'pulseButton 2s infinite' : 'none'
-            }}
-            onMouseEnter={(e) => {
-                if (canJoin && interview.lienVisio) {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 8px 30px rgba(40, 167, 69, 0.5)';
-                }
-            }}
-            onMouseLeave={(e) => {
-                if (canJoin && interview.lienVisio) {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 4px 20px rgba(40, 167, 69, 0.4)';
-                }
-            }}
-        >
-            {canJoin && interview.lienVisio ? icons.video : icons.hourglass}
-            {(canJoin && interview.lienVisio) ? "Rejoindre l'entretien" : `Rejoindre (${timeUntil})`}
-        </button>
+                                    {isReal && !hasDecision && (
+                                        <>
+                                            {/* Bouton Rejoindre */}
+                                            <button
+                                                onClick={() => {
+                                                    if (canJoin && interview.lienVisio) window.open(interview.lienVisio, '_blank');
+                                                }}
+                                                disabled={!canJoin || !interview.lienVisio}
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
+                                                    color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
+                                                    border: 'none', borderRadius: '10px', cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
+                                                    fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
+                                                    animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none'
+                                                }}
+                                            >
+                                                {(canJoin && interview.lienVisio) ? icons.video : icons.hourglass}
+                                                {(canJoin && interview.lienVisio) ? "Rejoindre l'appel" : `Rejoindre (${timeUntil})`}
+                                            </button>
 
-        {/* NOUVEAU BOUTON : Terminer l'entretien manuellement (disparaît après le clic) */}
-        {interview.statut !== 'evaluation_en_cours' && canJoin && (
-            <button 
-                onClick={() => handleTerminerVisio(interview.offreId, interview.candidatureId)}
-                style={{ 
-                    padding: '10px 15px', background: 'transparent', border: '1px solid #dc3545', 
-                    color: '#dc3545', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' 
-                }}>
-                Terminer
-            </button>
-        )}
-
-                                            {/* NOUVEAU BOUTON : Terminer l'entretien manuellement */}
+                                            {/* Bouton Terminer */}
                                             {interview.statut !== 'evaluation_en_cours' && canJoin && (
                                                 <button 
                                                     onClick={() => handleTerminerVisio(interview.offreId, interview.candidatureId)}
@@ -479,7 +415,7 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                                                 </button>
                                             )}
                                             
-                                            {/* Le bouton Décision Finale apparaît si le statut est "evaluation_en_cours" OU si le temps est dépassé */}
+                                            {/* Décision Finale */}
                                             {(isPassed || interview.statut === 'evaluation_en_cours') && (
                                                 <button onClick={() => { setSelectedInterview(interview); setShowModal(true); }}
                                                     style={{ padding: '10px 20px', background: 'transparent', border: `1px solid #6c63ff`, color: '#6c63ff', borderRadius: '10px', cursor: 'pointer' }}>
@@ -523,7 +459,6 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                         width: '100%', maxWidth: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
                     }}>
-                        {/* Header Modal */}
                         <div style={{ padding: '20px', borderBottom: cardBorder, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2 style={{ margin: 0, color: textPrimary, fontSize: '20px' }}>
                                 Dossier de {selectedInterview.etudiantNom}
@@ -531,14 +466,11 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                             <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: textSecondary, fontSize: '24px', cursor: 'pointer' }}>×</button>
                         </div>
 
-                        {/* Body Modal (Scrollable) */}
                         <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
                             
-                            {/* Section Spécifique IA */}
                             {selectedInterview.interviewType === 'ai' && (
                                 <>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginBottom: '30px' }}>
-                                        {/* Colonne Score */}
                                         <div style={{ background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', padding: '20px', borderRadius: '15px' }}>
                                             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                                                 <div style={{ fontSize: '48px', fontWeight: 'bold', color: selectedInterview.scoreEntretien >= 70 ? '#10b981' : '#f59e0b' }}>
@@ -557,7 +489,6 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                                             )}
                                         </div>
 
-                                        {/* Colonne Commentaire & Historique */}
                                         <div>
                                             <h4 style={{ color: textPrimary, margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>{icons.chat} Synthèse de l'IA</h4>
                                             <p style={{ color: textSecondary, background: isDark ? 'rgba(108, 99, 255, 0.1)' : '#eef2ff', padding: '15px', borderRadius: '10px', borderLeft: '4px solid #6c63ff', fontStyle: 'italic', fontSize: '14px', lineHeight: '1.6' }}>
@@ -583,7 +514,6 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                                 </>
                             )}
 
-                            {/* Section Spécifique Réel */}
                             {selectedInterview.interviewType === 'reel' && (
                                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                                     <div style={{ fontSize: '40px', color: '#6c63ff', marginBottom: '15px' }}>{icons.users}</div>
@@ -594,60 +524,56 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
 
                         </div>
 
-                        {/* Footer Modal - Actions de décision */}
-                       {/* Footer Modal - Actions de décision */}
-{!(selectedInterview.statut === 'embauché' || selectedInterview.statut === 'refusée_final') && (
-    <div style={{ padding: '20px', borderTop: cardBorder, display: 'flex', gap: '15px', background: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc', borderRadius: '0 0 20px 20px' }}>
-        
-        {/* CAS 1 : Entretien IA -> Planifier la suite ou Refuser */}
-        {selectedInterview.interviewType === 'ai' && (
-            <>
-                <button
-                    onClick={() => setSchedulingInterview(selectedInterview)}
-                    disabled={isSubmitting}
-                    style={{ flex: 1, padding: '15px', background: '#6c63ff', color: 'white', border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                >
-                    {icons.calendar} Planifier un entretien réel
-                </button>
-                <button
-                    onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'refusée_final')}
-                    disabled={isSubmitting}
-                    style={{ flex: 1, padding: '15px', background: 'transparent', color: '#dc3545', border: '2px solid #dc3545', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                >
-                    {icons.xCircle} Refuser définitivement
-                </button>
-            </>
-        )}
+                        {!(selectedInterview.statut === 'embauché' || selectedInterview.statut === 'refusée_final') && (
+                            <div style={{ padding: '20px', borderTop: cardBorder, display: 'flex', gap: '15px', background: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc', borderRadius: '0 0 20px 20px' }}>
+                                
+                                {selectedInterview.interviewType === 'ai' && (
+                                    <>
+                                        <button
+                                            onClick={() => setSchedulingInterview(selectedInterview)}
+                                            disabled={isSubmitting}
+                                            style={{ flex: 1, padding: '15px', background: '#6c63ff', color: 'white', border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                        >
+                                            {icons.calendar} Planifier un entretien réel
+                                        </button>
+                                        <button
+                                            onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'refusée_final')}
+                                            disabled={isSubmitting}
+                                            style={{ flex: 1, padding: '15px', background: 'transparent', color: '#dc3545', border: '2px solid #dc3545', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                        >
+                                            {icons.xCircle} Refuser définitivement
+                                        </button>
+                                    </>
+                                )}
 
-        {/* CAS 2 : Entretien Réel -> Accepter ou Refuser (Quand l'heure est passée OU terminé manuellement) */}
-        {selectedInterview.interviewType === 'reel' && (
-            (isInterviewPassed(selectedInterview.creneauChoisi) || selectedInterview.etapeEntretien === 'termine' || selectedInterview.statut === 'evaluation_en_cours') ? (
-                <>
-                    <button
-                        onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'proposition_envoyee')}
-                        disabled={isSubmitting}
-                        style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #28a745, #20c997)', color: 'white', border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                    >
-                        {icons.checkCircle} Faire une proposition
-                    </button>
-                    <button
-                        onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'refusée_final')}
-                        disabled={isSubmitting}
-                        style={{ flex: 1, padding: '15px', background: 'transparent', color: '#dc3545', border: '2px solid #dc3545', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                    >
-                        {icons.xCircle} Refuser définitivement
-                    </button>
-                </>
-            ) : (
-                <div style={{ width: '100%', textAlign: 'center', color: textSecondary, padding: '10px', fontWeight: 'bold' }}>
-                    ⏳ La décision finale sera disponible une fois l'entretien terminé.
-                </div>
-            )
-        )}
-        
-    </div>
-)}
-                        
+                                {selectedInterview.interviewType === 'reel' && (
+                                    (isInterviewPassed(selectedInterview.creneauChoisi) || selectedInterview.etapeEntretien === 'termine' || selectedInterview.statut === 'evaluation_en_cours') ? (
+                                        <>
+                                            <button
+                                                onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'proposition_envoyee')}
+                                                disabled={isSubmitting}
+                                                style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #28a745, #20c997)', color: 'white', border: 'none', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                            >
+                                                {icons.checkCircle} Faire une proposition
+                                            </button>
+                                            <button
+                                                onClick={() => handleFinalDecision(selectedInterview.offreId, selectedInterview.candidatureId, 'refusée_final')}
+                                                disabled={isSubmitting}
+                                                style={{ flex: 1, padding: '15px', background: 'transparent', color: '#dc3545', border: '2px solid #dc3545', borderRadius: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                            >
+                                                {icons.xCircle} Refuser définitivement
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div style={{ width: '100%', textAlign: 'center', color: textSecondary, padding: '10px', fontWeight: 'bold' }}>
+                                            ⏳ La décision finale sera disponible une fois l'entretien terminé.
+                                        </div>
+                                    )
+                                )}
+                                
+                            </div>
+                        )}
+                                                
                         {(selectedInterview.statut === 'embauché' || selectedInterview.statut === 'refusée_final') && (
                             <div style={{ padding: '20px', borderTop: cardBorder, textAlign: 'center', color: textSecondary }}>
                                 Ce dossier est clôturé. Décision : <strong style={{ color: selectedInterview.statut === 'embauché' ? '#28a745' : '#dc3545' }}>{selectedInterview.statut === 'embauché' ? 'Embauché' : 'Refusé'}</strong>
@@ -658,59 +584,58 @@ const isErrorMessage = safeMessageStr.includes('Erreur') || safeMessageStr.inclu
                     
                 </div>
             )}
-    {/* MODAL DE PLANIFICATION DE L'ENTRETIEN RÉEL */}
+            
+            {/* MODAL DE PLANIFICATION DE L'ENTRETIEN RÉEL */}
             {schedulingInterview && (
                 <CalendrierEntretien
                     offre={{ _id: schedulingInterview.offreId }}
                     onClose={() => setSchedulingInterview(null)}
                     onConfirm={async (creneau) => {
-    try {
-        const safeCandidatureId = schedulingInterview.candidatureId || schedulingInterview._id;
-        const safeOffreId = schedulingInterview.offreId || schedulingInterview.idOffre || schedulingInterview.offre?._id;
-        const safeEtudiantId = schedulingInterview.etudiantId?._id || schedulingInterview.etudiantId || schedulingInterview.etudiant?._id;
+                        try {
+                            const safeCandidatureId = schedulingInterview.candidatureId || schedulingInterview._id;
+                            const safeOffreId = schedulingInterview.offreId || schedulingInterview.idOffre || schedulingInterview.offre?._id;
+                            const safeEtudiantId = schedulingInterview.etudiantId?._id || schedulingInterview.etudiantId || schedulingInterview.etudiant?._id;
 
-        // 1. UPDATE STATUS: Tell the database this is now a Real Interview
-        await fetch(`https://pfe-backend-five.vercel.app/offres/${safeOffreId}/candidatures/${safeCandidatureId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                statut: 'acceptée',
-                commentaire: `Suite à votre évaluation IA, un entretien réel a été planifié le ${creneau.date} à ${creneau.heureDebut}`,
-                interviewType: 'reel',
-                etapeEntretien: 'creneau_choisi'
-            })
-        });
+                            await fetch(`https://pfe-backend-five.vercel.app/offres/${safeOffreId}/candidatures/${safeCandidatureId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    statut: 'acceptée',
+                                    commentaire: `Suite à votre évaluation IA, un entretien réel a été planifié le ${creneau.date} à ${creneau.heureDebut}`,
+                                    interviewType: 'reel',
+                                    etapeEntretien: 'creneau_choisi'
+                                })
+                            });
 
-        // 2. SCHEDULE SLOT: Flatten the keys to match server.js and include the recruiter ID
-        const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                idCandidature: safeCandidatureId,
-                idOffre: safeOffreId,
-                idEtudiant: safeEtudiantId,
-                idRecruteur: user.id,             // ADDED: Essential for backend auth
-                date: creneau.date,               // FLATTENED
-                heureDebut: creneau.heureDebut,   // FLATTENED
-                heureFin: creneau.heureFin        // FLATTENED
-            })
-        });
+                            const res = await fetch(`https://pfe-backend-five.vercel.app/creneaux/planifier-recruteur`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    idCandidature: safeCandidatureId,
+                                    idOffre: safeOffreId,
+                                    idEtudiant: safeEtudiantId,
+                                    idRecruteur: user.id,             
+                                    date: creneau.date,               
+                                    heureDebut: creneau.heureDebut,   
+                                    heureFin: creneau.heureFin        
+                                })
+                            });
 
-        if (res.ok) {
-            setMessage(`✅ Entretien réel planifié avec succès pour le ${creneau.date}.`);
-            setSchedulingInterview(null);
-            setShowModal(false);
-            fetchInterviews(user.id); // Reload the list
-        } else {
-            setMessage('❌ Erreur lors de la planification.');
-            setSchedulingInterview(null);
-        }
-    } catch (err) {
-        console.error(err);
-        setMessage('❌ Erreur de connexion au serveur.');
-        setSchedulingInterview(null);
-    }
-}}
+                            if (res.ok) {
+                                setMessage(`✅ Entretien réel planifié avec succès pour le ${creneau.date}.`);
+                                setSchedulingInterview(null);
+                                setShowModal(false);
+                                fetchInterviews(user.id); 
+                            } else {
+                                setMessage('❌ Erreur lors de la planification.');
+                                setSchedulingInterview(null);
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            setMessage('❌ Erreur de connexion au serveur.');
+                            setSchedulingInterview(null);
+                        }
+                    }}
                     mode="recruteur"
                 />
             )}
