@@ -623,17 +623,33 @@ app.get("/users/:userId/cv", async (req, res) => {
             expires_at: Math.floor(Date.now() / 1000) + 3600
         });
         
-        // Fetch the file from Cloudinary
-        const response = await fetch(signedUrl);
-        const buffer = await response.arrayBuffer();
+        // Use https module to fetch the file
+        const https = require('https');
         
-        // Send it to the browser
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="${user.cv.originalName || 'cv.pdf'}"`);
-        res.send(Buffer.from(buffer));
+        https.get(signedUrl, (cloudinaryRes) => {
+            // Handle redirects if any
+            if (cloudinaryRes.statusCode >= 300 && cloudinaryRes.statusCode < 400 && cloudinaryRes.headers.location) {
+                https.get(cloudinaryRes.headers.location, (redirectRes) => {
+                    res.setHeader('Content-Type', 'application/pdf');
+                    res.setHeader('Content-Disposition', `inline; filename="${user.cv.originalName || 'cv.pdf'}"`);
+                    redirectRes.pipe(res);
+                }).on('error', (err) => {
+                    console.error("Error following redirect:", err);
+                    res.status(500).json({ error: "Erreur lors du téléchargement du CV" });
+                });
+                return;
+            }
+            
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename="${user.cv.originalName || 'cv.pdf'}"`);
+            cloudinaryRes.pipe(res);
+        }).on('error', (err) => {
+            console.error("Error fetching CV from Cloudinary:", err);
+            res.status(500).json({ error: "Erreur lors du téléchargement du CV" });
+        });
         
     } catch (err) {
-        console.error("Error fetching CV:", err);
+        console.error("Error in CV endpoint:", err);
         res.status(500).json({ error: err.message });
     }
 });
