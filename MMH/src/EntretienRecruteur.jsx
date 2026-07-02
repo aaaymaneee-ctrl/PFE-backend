@@ -386,22 +386,30 @@ function EntretienRecruteur() {
                                         <>
                                             {/* Bouton Rejoindre */}
                                             <button
-                                                onClick={() => {
-                                                    if (canJoin && interviews.lienVisio) {
-                                                        window.open(interviews.lienVisio, '_blank');
-                                                        console.log("it works");
-                                                    }
-                                                }}
-                                                //disabled={!canJoin || !interview.lienVisio}
-                                                style={{
-                                                    padding: '10px 20px',
-                                                    background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
-                                                    color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
-                                                    border: 'none', borderRadius: '10px', cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
-                                                    fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
-                                                    animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none'
-                                                }}
-                                            >
+    onClick={() => {
+        if (canJoin && interview.lienVisio) {
+            window.open(interview.lienVisio, '_blank');
+            console.log("Joining interview:", interview.lienVisio);
+        } else {
+            console.log("Cannot join - canJoin:", canJoin, "lienVisio:", interview.lienVisio);
+        }
+    }}
+    disabled={!canJoin || !interview.lienVisio}
+    style={{
+        padding: '10px 20px',
+        background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
+        color: (canJoin && interview.lienVisio) ? 'white' : (isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8'),
+        border: 'none', 
+        borderRadius: '10px', 
+        cursor: (canJoin && interview.lienVisio) ? 'pointer' : 'not-allowed',
+        fontWeight: 'bold', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '6px',
+        animation: (canJoin && interview.lienVisio) ? 'pulse 2s infinite' : 'none',
+        opacity: (!canJoin || !interview.lienVisio) ? 0.5 : 1
+    }}
+>
                                                 {(canJoin && interview.lienVisio) ? icons.video : icons.hourglass}
                                                 {(canJoin && interview.lienVisio) ? "Rejoindre l'appel" : `Rejoindre (${timeUntil})`}
                                             </button>
