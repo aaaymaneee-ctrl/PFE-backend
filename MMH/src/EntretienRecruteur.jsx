@@ -387,9 +387,9 @@ function EntretienRecruteur() {
                                             {/* Bouton Rejoindre */}
                                             <button
                                                 onClick={() => {
-                                                    {/*if (canJoin && interview.lienVisio)*/} window.open(interview.lienVisio, '_blank');
+                                                    if (canJoin && interview.lienVisio) window.open(interview.lienVisio, '_blank');
                                                 }}
-                                                disabled={!canJoin || !interview.lienVisio}
+                                                //disabled={!canJoin || !interview.lienVisio}
                                                 style={{
                                                     padding: '10px 20px',
                                                     background: (canJoin && interview.lienVisio) ? 'linear-gradient(135deg, #28a745, #20c997)' : (isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'),
